@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Reflection;
-using Autodesk.Revit.UI;
-using System.Windows.Media.Imaging;
 using System.IO;
+using System.Reflection;
+using System.Windows.Media.Imaging;
+using Autodesk.Revit.UI;
 
 namespace RevitCopyParams
 {
@@ -12,57 +12,80 @@ namespace RevitCopyParams
         {
             string tabName = "BIM Tools";
 
-            try
+
+        try
             {
                 application.CreateRibbonTab(tabName);
             }
-            catch { }
+            catch
+            {
+                // Вкладка уже существует
+            }
 
             RibbonPanel panel = application.CreateRibbonPanel(tabName, "Параметры");
 
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
-
-            // КНОПКА 1
-            PushButtonData buttonData = new PushButtonData(
+            string assemblyFolder = Path.GetDirectoryName(assemblyPath);
+            //Кнопка1
+            CreateButton(
+                panel,
+                assemblyPath,
+                assemblyFolder,
                 "CopyParams",
                 "Копировать",
+                "RevitCopyParams.CopyParamsToInsulation",
+                "Копирует параметры с воздуховодов/труб на изоляцию");
+            //Кнопка 2
+            CreateButton(
+                panel,
                 assemblyPath,
-                "RevitCopyParams.CopyParamsToInsulation"
-            );
+                assemblyFolder,
+                "CreatePipes",
+                "Трубы",
+                "RevitCopyParams.CreatePipesCommand",
+                "Создание теплого пола по заданной области");
+
+            return Result.Succeeded;
+        }
+        //метод вызова кнопок
+        private void CreateButton(
+            RibbonPanel panel,
+            string assemblyPath,
+            string assemblyFolder,
+            string internalName,
+            string buttonText,
+            string commandClass,
+            string toolTip)
+        {
+            PushButtonData buttonData = new PushButtonData(
+                internalName,
+                buttonText,
+                assemblyPath,
+                commandClass);
 
             PushButton button = panel.AddItem(buttonData) as PushButton;
 
-            // КНОПКА 2
-            PushButtonData button2 = new PushButtonData(
-                "CreatePipes",
-                "Трубы",
-                assemblyPath,
-                "RevitCopyParams.CreatePipesCommand"
-            );
+            if (button == null)
+                return;
 
-            PushButton pipeButton = panel.AddItem(button2) as PushButton;
+            button.ToolTip = toolTip;
 
-            pipeButton.ToolTip = "Создание теплого пола по заданной области";
+            string icon32 = Path.Combine(assemblyFolder, "icon32.png");
+            string icon16 = Path.Combine(assemblyFolder, "icon16.png");
 
-            // ИКОНКИ
-            string folder = Path.GetDirectoryName(assemblyPath);
+            SetButtonIcons(button, icon16, icon32);
+        }
+        //метод иконок кнопок
+        private void SetButtonIcons(PushButton button, string smallIcon, string largeIcon)
+        {
+            if (button == null)
+                return;
 
-            string icon32 = Path.Combine(folder, "icon32.png");
-            string icon16 = Path.Combine(folder, "icon16.png");
+            if (File.Exists(largeIcon))
+                button.LargeImage = new BitmapImage(new Uri(largeIcon));
 
-            if (File.Exists(icon32))
-            {
-                button.LargeImage = new BitmapImage(new Uri(icon32));
-            }
-
-            if (File.Exists(icon16))
-            {
-                button.Image = new BitmapImage(new Uri(icon16));
-            }
-
-            button.ToolTip = "Копирует параметры с воздуховодов/труб на изоляцию";
-
-            return Result.Succeeded;
+            if (File.Exists(smallIcon))
+                button.Image = new BitmapImage(new Uri(smallIcon));
         }
 
         public Result OnShutdown(UIControlledApplication application)
@@ -70,4 +93,5 @@ namespace RevitCopyParams
             return Result.Succeeded;
         }
     }
+
 }
