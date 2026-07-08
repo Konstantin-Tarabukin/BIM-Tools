@@ -80,12 +80,18 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="obj\" />
-    <Folder Include="Services\" />
-    <Folder Include="Utils\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RevitCopyParams.addin" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>mkdir "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams"
+
+copy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams\" /Y
+
+xcopy "$(ProjectDir)Resources\*.*" "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams\Resources\" /Y /E
+
+copy "$(ProjectDir)RevitCopyParams.addin" "C:\ProgramData\Autodesk\Revit\Addins\2023\" /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

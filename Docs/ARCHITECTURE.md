@@ -1,17 +1,19 @@
 App
  │
- ├── Ribbon
- │     ├── Копирование параметров
- │     ├── Журнал изменений
- │     ├── Проверки модели
- │     └── ...
- │
  ├── Commands
+ │      ├──CopyParamsToInsulation.cs
+ │      └──CreatePipesCommand.cs
  │
- ├── Services
+ ├── Properties
+ │      └──AssemblyInfo.cs
  │
- ├── UI
+ ├── Resources
+ │      ├── icon16.png
+ │      └── icon32.png
  │
- ├── Storage
- │
- └── Utils
+ └───── UI
+        ├── ParaForm.xaml
+		├── ParaForm.xaml.cs
+		├── SettingsForm.cs
+        └── SettingsForm.Designer.cs
+ 

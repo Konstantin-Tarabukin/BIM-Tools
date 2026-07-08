@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+
+  <AddIn Type="Application">
+
+    <Name>RevitCopyParams</Name>
+
+    <Assembly>
+      C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams\RevitCopyParams.dll
+    </Assembly>
+
+    <AddInId>7AC1B09C-4C4D-4DA6-869F-4CE027F1A8B2</AddInId>
+
+    <FullClassName>
+      RevitCopyParams.App
+    </FullClassName>
+
+    <VendorId>ADSK</VendorId>
+
+  </AddIn>
+
+</RevitAddIns>
