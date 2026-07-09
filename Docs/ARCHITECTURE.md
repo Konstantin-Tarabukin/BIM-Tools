@@ -1,11 +1,18 @@
 App
  │
+ │
+ ├── RevitCopyParams.addin
+ │
+ │
  ├── Commands
  │      ├──CopyParamsToInsulation.cs
  │      └──CreatePipesCommand.cs
  │
  ├── Properties
  │      └──AssemblyInfo.cs
+ │
+ ├── Service
+ │      └──NotificationService.cs
  │
  ├── Resources
  │      ├── icon16.png

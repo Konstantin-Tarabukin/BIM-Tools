@@ -4,30 +4,32 @@ using System.Reflection;
 using System.Windows.Media.Imaging;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.DB.Events;// используем для сокращения имени класса "Autodesk.Revit.DB.Events.DocumentOpenedEventArgs"
-
+using System.Windows.Interop;
 namespace RevitCopyParams
 {
     public class App : IExternalApplication
     {
+        private NotificationService notificationService =
+    new NotificationService();
         private void OnDocumentOpened(
     object sender,
     Autodesk.Revit.DB.Events.DocumentOpenedEventArgs e)
         {
-            CheckNotifications(e.Document);
+            notificationService.CheckNotifications(e.Document, "Открытие файла");
         }
 
         private void OnDocumentSynchronized(
             object sender,
             Autodesk.Revit.DB.Events.DocumentSynchronizedWithCentralEventArgs e)
         {
-            CheckNotifications(e.Document);
+            notificationService.CheckNotifications(e.Document, "Синхронизация");
         }
 
         private void OnReloadLatest(
             object sender,
             Autodesk.Revit.DB.Events.DocumentReloadedLatestEventArgs e)
         {
-            CheckNotifications(e.Document);
+            notificationService.CheckNotifications(e.Document,  "Обновить до последней версии");
         }
         public Result OnStartup(UIControlledApplication application)
         {
@@ -59,7 +61,8 @@ namespace RevitCopyParams
                 "CopyParams",
                 "Копировать",
                 "RevitCopyParams.CopyParamsToInsulation",
-                "Копирует параметры с воздуховодов/труб на изоляцию");
+                "Копирует параметры с воздуховодов/труб на изоляцию",
+                "CopyParams");
             //Кнопка 2
             CreateButton(
                 panel,
@@ -68,7 +71,18 @@ namespace RevitCopyParams
                 "CreatePipes",
                 "Трубы",
                 "RevitCopyParams.CreatePipesCommand",
-                "Создание теплого пола по заданной области");
+                "Создание теплого пола по заданной области",
+                "CreatePipes");
+            // Кнопка 3
+            CreateButton(
+                panel,
+                assemblyPath,
+                assemblyFolder,
+                "ChangeJournal",
+                "Журнал",
+                "RevitCopyParams.ChangeJournalCommand",
+                "Создание записи об изменениях",
+               "Journal");
 
 
             return Result.Succeeded;
@@ -82,7 +96,8 @@ namespace RevitCopyParams
             string internalName,
             string buttonText,
             string commandClass,
-            string toolTip)
+            string toolTip,
+            string iconName)
         {
             PushButtonData buttonData = new PushButtonData(
                 internalName,
@@ -97,8 +112,17 @@ namespace RevitCopyParams
 
             button.ToolTip = toolTip;
 
-            string icon32 = Path.Combine(assemblyFolder, "icon32.png");
-            string icon16 = Path.Combine(assemblyFolder, "icon16.png");
+            string resourcesFolder = Path.Combine(
+    assemblyFolder,
+    "Resources");
+
+            string icon32 = Path.Combine(
+                resourcesFolder,
+                iconName + "32.png");
+
+            string icon16 = Path.Combine(
+                resourcesFolder,
+                iconName + "16.png");
 
             SetButtonIcons(button, icon16, icon32);
         }
@@ -123,12 +147,7 @@ namespace RevitCopyParams
 
             return Result.Succeeded;
         }
-        private void CheckNotifications(Autodesk.Revit.DB.Document document)
-        {
-            TaskDialog.Show(
-                "BIM Tools",
-                $"Проверка уведомлений\n\nПроект:\n{document.Title}");
-        }
+
     }
 
 }
