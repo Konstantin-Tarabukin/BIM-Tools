@@ -58,8 +58,14 @@
     <Compile Include="Commands\ChangeJournalCommand.cs" />
     <Compile Include="Commands\CopyParamsToInsulation.cs" />
     <Compile Include="Commands\CreatePipesCommand.cs" />
+    <Compile Include="Commands\SheetNumberCommand.cs" />
+    <Compile Include="Models\SheetNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\NotificationService.cs" />
+    <Compile Include="Services\SheetNumberService.cs" />
+    <Compile Include="UI\SheetNumberWindow.xaml.cs">
+      <DependentUpon>SheetNumberWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\NotificationWindow.xaml.cs">
       <DependentUpon>NotificationWindow.xaml</DependentUpon>
     </Compile>
@@ -74,6 +80,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="UI\SheetNumberWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UI\NotificationWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -96,6 +106,8 @@
     <Content Include="Resources\CreatePipes32.png" />
     <Content Include="Resources\Journal16.png" />
     <Content Include="Resources\Journal32.png" />
+    <Content Include="Resources\SheetNumber16.png" />
+    <Content Include="Resources\SheetNumber32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

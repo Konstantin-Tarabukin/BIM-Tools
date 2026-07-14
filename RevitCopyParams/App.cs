@@ -73,6 +73,7 @@ namespace RevitCopyParams
                 "RevitCopyParams.CreatePipesCommand",
                 "Создание теплого пола по заданной области",
                 "CreatePipes");
+
             // Кнопка 3
             CreateButton(
                 panel,
@@ -83,6 +84,17 @@ namespace RevitCopyParams
                 "RevitCopyParams.ChangeJournalCommand",
                 "Создание записи об изменениях",
                "Journal");
+
+            // Кнопка 4
+            CreateButton(
+                panel,
+                assemblyPath,
+                assemblyFolder,
+                "SheetNumber",
+                "Нумератор\nлистов",
+                "RevitCopyParams.SheetNumberCommand",
+                "Перенумерация листов в проекте",
+               "SheetNumber");
 
 
             return Result.Succeeded;
