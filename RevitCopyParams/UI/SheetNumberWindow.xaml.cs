@@ -192,6 +192,7 @@ namespace RevitCopyParams.UI
             string prefix = DecodeIcons(tbPrefix.Text);
             string suffix = DecodeIcons(tbSuffix.Text);
 
+            bool hasDuplicates = false;
 
             foreach (ViewSheet sheet in selectedSheets)
             {
@@ -200,13 +201,53 @@ namespace RevitCopyParams.UI
                     sheet.SheetNumber +
                     suffix;
 
+                bool duplicate = allSheets.Any(s =>
+                    s.Id != sheet.Id &&
+                    s.SheetNumber == newNumber);
 
-                string preview =
-                    DisplayUnicode(newNumber);
+                string preview = DisplayUnicode(newNumber);
 
+                if (duplicate)
+                {
+                    hasDuplicates = true;
 
-                lbPreview.Items.Add(
-                    $"{sheet.SheetNumber} | {preview}");
+                    ListBoxItem item = new ListBoxItem();
+
+                    item.Content =
+                        $"⚠ {sheet.SheetNumber} | {preview}";
+
+                    item.Foreground =
+                        System.Windows.Media.Brushes.Red;
+
+                    item.FontWeight =
+                        FontWeights.Bold;
+
+                    lbPreview.Items.Add(item);
+                }
+                else
+                {
+                    ListBoxItem item = new ListBoxItem();
+
+                    item.Content =
+                        $"{sheet.SheetNumber} | {preview}";
+
+                    lbPreview.Items.Add(item);
+                }
+            }
+
+            btnApply.IsEnabled =
+                selectedSheets.Count > 0 &&
+                !hasDuplicates;
+
+            if (hasDuplicates)
+            {
+                btnApply.ToolTip =
+                    "Устраните дубли номеров листов, чтобы продолжить.";
+            }
+            else
+            {
+                btnApply.ToolTip =
+                    "Применить изменения.";
             }
         }
         private void cbShowUnicode_Changed(
