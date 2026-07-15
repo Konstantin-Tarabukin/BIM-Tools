@@ -80,5 +80,13 @@ namespace RevitCopyParams.Services
                 .Select(x => x.Value)
                 .ToList();
         }
+        public List<ViewSheet> GetAllSheets()
+        {
+            return new FilteredElementCollector(_doc)
+                .OfClass(typeof(ViewSheet))
+                .Cast<ViewSheet>()
+                .Where(s => !s.IsPlaceholder)
+                .ToList();
+        }
     }
 }

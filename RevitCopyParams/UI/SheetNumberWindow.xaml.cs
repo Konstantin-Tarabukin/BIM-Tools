@@ -50,7 +50,7 @@ namespace RevitCopyParams.UI
                     Text = unicode.Icon,
                     FontSize = 16
                 };
-                item.Tag = unicode.Symbol;
+                item.Tag = unicode.Icon;
 
                 item.Click += UnicodeItem_Click;
 
@@ -117,9 +117,10 @@ namespace RevitCopyParams.UI
 
             treeSheets.ItemsSource =
                 service.GetSheetsTree();
+            allSheets = service.GetAllSheets();
         }
         private List<ViewSheet> selectedSheets = new List<ViewSheet>();
-
+        private List<ViewSheet> allSheets = new List<ViewSheet>();
         private void treeSheets_SelectedItemChanged(object sender,
             RoutedPropertyChangedEventArgs<object> e)
         {
@@ -147,40 +148,51 @@ namespace RevitCopyParams.UI
                 UpdatePreview();
             }
         }
+        private void btnApply_Click(object sender, RoutedEventArgs e)
+        {
+            if (selectedSheets.Count == 0)
+            {
+                MessageBox.Show("Выберите листы");
+                return;
+            }
+
+
+            string prefix = DecodeIcons(tbPrefix.Text);
+            string suffix = DecodeIcons(tbSuffix.Text);
+
+
+            using (Transaction transaction =
+                new Transaction(_uiapp.ActiveUIDocument.Document,
+                "Нумерация листов"))
+            {
+                transaction.Start();
+
+
+                foreach (ViewSheet sheet in selectedSheets)
+                {
+                    sheet.SheetNumber =
+                        prefix +
+                        sheet.SheetNumber +
+                        suffix;
+                }
+
+
+                transaction.Commit();
+            }
+
+
+            MessageBox.Show("Номера листов изменены");
+
+            UpdatePreview();
+        }
         private void UpdatePreview()
         {
             lbPreview.Items.Clear();
 
-            string prefix = tbPrefix.Text;
-            string suffix = tbSuffix.Text;
+            string prefix = DecodeIcons(tbPrefix.Text);
+            string suffix = DecodeIcons(tbSuffix.Text);
 
 
-            List<string> newNumbers = new List<string>();
-
-
-            // Сначала собираем все новые номера
-            foreach (ViewSheet sheet in selectedSheets)
-            {
-                string newNumber =
-                    prefix +
-                    sheet.SheetNumber +
-                    suffix;
-
-                newNumbers.Add(newNumber);
-            }
-
-
-            // Ищем повторяющиеся номера
-            List<string> duplicates =
-                newNumbers
-                .GroupBy(x => x)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key)
-                .ToList();
-
-
-
-            // Заполняем Preview
             foreach (ViewSheet sheet in selectedSheets)
             {
                 string newNumber =
@@ -193,25 +205,9 @@ namespace RevitCopyParams.UI
                     DisplayUnicode(newNumber);
 
 
-                ListBoxItem item = new ListBoxItem();
-
-
-                if (duplicates.Contains(newNumber))
-                {
-                    item.Content =
-                        $"⚠  {sheet.SheetNumber} | {preview}";
-                }
-                else
-                {
-                    item.Content =
-                        $"{sheet.SheetNumber} | {preview}";
-                }
-
-
-                lbPreview.Items.Add(item);
+                lbPreview.Items.Add(
+                    $"{sheet.SheetNumber} | {preview}");
             }
-        
-        
         }
         private void cbShowUnicode_Changed(
     object sender,
@@ -306,8 +302,56 @@ namespace RevitCopyParams.UI
                 }
             }
 
-
             return result.ToString();
+
+        }
+        private string EncodeIcons(string text)
+        {
+            return text
+                .Replace("\u200E", "←")
+                .Replace("\u200F", "→")
+
+                .Replace("\u202A", "↢")
+                .Replace("\u202B", "↣")
+                .Replace("\u202C", "◈")
+                .Replace("\u202D", "⇐")
+                .Replace("\u202E", "⇒")
+
+                .Replace("\u2066", "⟵")
+                .Replace("\u2067", "⟶")
+                .Replace("\u2068", "◌")
+                .Replace("\u2069", "×")
+
+                .Replace("\u200B", "·")
+                .Replace("\u200C", "⟂")
+                .Replace("\u200D", "↔")
+                .Replace("\u2060", "•")
+
+                .Replace("\uFEFF", "¤");
+        }
+        private string DecodeIcons(string text)
+        {
+            return text
+                .Replace("←", "\u200E")
+                .Replace("→", "\u200F")
+
+                .Replace("↢", "\u202A")
+                .Replace("↣", "\u202B")
+                .Replace("◈", "\u202C")
+                .Replace("⇐", "\u202D")
+                .Replace("⇒", "\u202E")
+
+                .Replace("⟵", "\u2066")
+                .Replace("⟶", "\u2067")
+                .Replace("◌", "\u2068")
+                .Replace("×", "\u2069")
+
+                .Replace("·", "\u200B")
+                .Replace("⟂", "\u200C")
+                .Replace("↔", "\u200D")
+                .Replace("•", "\u2060")
+
+                .Replace("¤", "\uFEFF");
         }
         private List<UnicodeSymbol> GetUnicodeSymbols()
         {
