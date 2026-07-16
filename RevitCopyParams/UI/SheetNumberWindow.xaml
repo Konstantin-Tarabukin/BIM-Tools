@@ -153,13 +153,39 @@
     Checked="cbShowUnicode_Changed"
     Unchecked="cbShowUnicode_Changed"/>
             <GroupBox
-                Grid.Row="8"
-                Header="Предпросмотр">
+    Grid.Row="8"
+    Header="Редактор листов">
 
-                <ListBox
-                    x:Name="lbPreview"/>
+                <DataGrid
+        x:Name="dgSheets"
+        AutoGenerateColumns="False"
+        CanUserAddRows="False"
+        CanUserDeleteRows="False"
+        IsReadOnly="True">
+
+                    <DataGrid.Columns>
+
+                        <DataGridTextColumn
+                Header="Новый"
+                Binding="{Binding NewNumber}"
+                Width="90"/>
+
+                        <DataGridTextColumn
+                Header="Текущий"
+                Binding="{Binding CurrentNumber}"
+                Width="90"/>
+
+                        <DataGridTextColumn
+                Header="Название листа"
+                Binding="{Binding SheetName}"
+                Width="*"/>
+
+                    </DataGrid.Columns>
+
+                </DataGrid>
 
             </GroupBox>
+
 
 
             <!-- Кнопка -->

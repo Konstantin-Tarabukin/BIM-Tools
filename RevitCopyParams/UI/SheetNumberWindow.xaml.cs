@@ -15,6 +15,8 @@ namespace RevitCopyParams.UI
 {
     public partial class SheetNumberWindow : Window
     {
+        private List<SheetRow> sheetRows =
+    new List<SheetRow>();
         private class UnicodeSymbol
         {
             public string Name { get; set; }
@@ -187,7 +189,7 @@ namespace RevitCopyParams.UI
         }
         private void UpdatePreview()
         {
-            lbPreview.Items.Clear();
+            sheetRows.Clear();
 
             string prefix = DecodeIcons(tbPrefix.Text);
             string suffix = DecodeIcons(tbSuffix.Text);
@@ -201,54 +203,36 @@ namespace RevitCopyParams.UI
                     sheet.SheetNumber +
                     suffix;
 
-                bool duplicate = allSheets.Any(s =>
-                    s.Id != sheet.Id &&
-                    s.SheetNumber == newNumber);
-
-                string preview = DisplayUnicode(newNumber);
+                bool duplicate =
+                    allSheets.Any(s =>
+                        s.Id != sheet.Id &&
+                        s.SheetNumber == newNumber);
 
                 if (duplicate)
-                {
                     hasDuplicates = true;
 
-                    ListBoxItem item = new ListBoxItem();
-
-                    item.Content =
-                        $"⚠ {sheet.SheetNumber} | {preview}";
-
-                    item.Foreground =
-                        System.Windows.Media.Brushes.Red;
-
-                    item.FontWeight =
-                        FontWeights.Bold;
-
-                    lbPreview.Items.Add(item);
-                }
-                else
-                {
-                    ListBoxItem item = new ListBoxItem();
-
-                    item.Content =
-                        $"{sheet.SheetNumber} | {preview}";
-
-                    lbPreview.Items.Add(item);
-                }
+                sheetRows.Add(
+                    new SheetRow
+                    {
+                        Sheet = sheet,
+                        CurrentNumber = sheet.SheetNumber,
+                        NewNumber = DisplayUnicode(newNumber),
+                        SheetName = sheet.Name,
+                        HasDuplicate = duplicate
+                    });
             }
+
+            dgSheets.ItemsSource = null;
+            dgSheets.ItemsSource = sheetRows;
 
             btnApply.IsEnabled =
                 selectedSheets.Count > 0 &&
                 !hasDuplicates;
 
-            if (hasDuplicates)
-            {
-                btnApply.ToolTip =
-                    "Устраните дубли номеров листов, чтобы продолжить.";
-            }
-            else
-            {
-                btnApply.ToolTip =
-                    "Применить изменения.";
-            }
+            btnApply.ToolTip =
+                hasDuplicates
+                    ? "Устраните дубли номеров листов, чтобы продолжить."
+                    : "Применить изменения.";
         }
         private void cbShowUnicode_Changed(
     object sender,
