@@ -346,30 +346,7 @@ namespace RevitCopyParams.UI
             return result.ToString();
 
         }
-        private string EncodeIcons(string text)
-        {
-            return text
-                .Replace("\u200E", "←")
-                .Replace("\u200F", "→")
 
-                .Replace("\u202A", "↢")
-                .Replace("\u202B", "↣")
-                .Replace("\u202C", "◈")
-                .Replace("\u202D", "⇐")
-                .Replace("\u202E", "⇒")
-
-                .Replace("\u2066", "⟵")
-                .Replace("\u2067", "⟶")
-                .Replace("\u2068", "◌")
-                .Replace("\u2069", "×")
-
-                .Replace("\u200B", "·")
-                .Replace("\u200C", "⟂")
-                .Replace("\u200D", "↔")
-                .Replace("\u2060", "•")
-
-                .Replace("\uFEFF", "¤");
-        }
         private string DecodeIcons(string text)
         {
             return text
