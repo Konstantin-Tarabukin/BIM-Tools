@@ -4,7 +4,7 @@ namespace RevitCopyParams
 {
     public static class ChangeStorage
     {
-        private static List<ChangeRecord> records =
+        private static readonly List<ChangeRecord> records =
             new List<ChangeRecord>();
 
 
@@ -14,7 +14,7 @@ namespace RevitCopyParams
         }
 
 
-        public static List<ChangeRecord> GetAll()
+        public static IReadOnlyList<ChangeRecord> GetAll()
         {
             return records;
         }
