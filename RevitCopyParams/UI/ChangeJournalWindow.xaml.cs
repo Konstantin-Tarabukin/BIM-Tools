@@ -20,7 +20,9 @@ namespace RevitCopyParams
         {
             lvJournal.Items.Clear();
 
-            foreach (ChangeRecord record in ChangeStorage.GetAll())
+            foreach (ChangeRecord record in
+                ChangeExtensibleStorageService.LoadJournal(
+                    _uiApp.ActiveUIDocument.Document))
             {
                 lvJournal.Items.Add(record);
             }
@@ -39,18 +41,23 @@ namespace RevitCopyParams
 
             ChangeRecord record = new ChangeRecord
             {
-                Id = Guid.NewGuid(),
+
 
                 Description = createWindow.DescriptionText,
 
                 Disciplines = createWindow.SelectedDisciplines,
 
-                CreatedDate = DateTime.Now,
 
-                Author = _uiApp.Application.Username
+
+                Author = _uiApp.Application.Username, 
+
+
+                SourceModel = _uiApp.ActiveUIDocument.Document.Title
             };
 
-            ChangeStorage.Add(record);
+            ChangeExtensibleStorageService.AddRecord(
+                _uiApp.ActiveUIDocument.Document,
+                record);
 
             RefreshJournal();
         }

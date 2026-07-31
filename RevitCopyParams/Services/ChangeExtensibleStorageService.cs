@@ -138,9 +138,6 @@ namespace RevitCopyParams
         public static List<ChangeRecord> LoadJournal(
             Document document)
         {
-            List<ChangeRecord> result =
-                new List<ChangeRecord>();
-
             Schema schema =
                 GetSchema();
 
@@ -159,16 +156,24 @@ namespace RevitCopyParams
                 string json =
                     entity.Get<string>("JournalJson");
 
-                result =
-                    DeserializeJournal(json);
-
-
-
-                break;
+                return DeserializeJournal(json);
             }
 
+            return new List<ChangeRecord>();
+        }
 
-            return result;
+        public static void AddRecord(
+    Document document,
+    ChangeRecord record)
+        {
+            List<ChangeRecord> journal =
+                LoadJournal(document);
+
+            journal.Add(record);
+
+            SaveJournal(
+                document,
+                journal);
         }
     }
 }

@@ -18,6 +18,10 @@ namespace RevitCopyParams
 
         public string Author { get; set; }
 
+        public string SourceModel { get; set; }
+
         public Guid Id { get; set; }
+
+        
     }
 }
