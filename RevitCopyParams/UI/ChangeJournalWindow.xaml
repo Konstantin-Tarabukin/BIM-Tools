@@ -48,7 +48,8 @@
                         Text="{Binding Author}"/>
 
                             <TextBlock
-                        Text="{Binding Disciplines}"/>
+    Text="{Binding TargetModels}"
+    Margin="0,3,0,0"/>
 
                             <TextBlock
                         Text="{Binding Description}"

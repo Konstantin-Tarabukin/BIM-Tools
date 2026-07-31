@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Autodesk.Revit.UI;
+using System;
+using System.Collections.Generic;
 using System.Windows;
-using Autodesk.Revit.UI;
 
 namespace RevitCopyParams
 {
@@ -30,7 +31,9 @@ namespace RevitCopyParams
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)
         {
-            ChangeCreateWindow createWindow = new ChangeCreateWindow();
+            ChangeCreateWindow createWindow =
+                new ChangeCreateWindow(
+                    _uiApp.ActiveUIDocument.Document);
 
             createWindow.Owner = this;
 
@@ -45,8 +48,8 @@ namespace RevitCopyParams
 
                 Description = createWindow.DescriptionText,
 
-                Disciplines = createWindow.SelectedDisciplines,
 
+                TargetModels = createWindow.SelectedModels,
 
 
                 Author = _uiApp.Application.Username, 
@@ -54,6 +57,8 @@ namespace RevitCopyParams
 
                 SourceModel = _uiApp.ActiveUIDocument.Document.Title
             };
+
+
 
             ChangeExtensibleStorageService.AddRecord(
                 _uiApp.ActiveUIDocument.Document,

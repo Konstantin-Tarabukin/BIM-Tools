@@ -69,6 +69,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ChangeExtensibleStorageService.cs" />
     <Compile Include="Services\NotificationService.cs" />
+    <Compile Include="Services\NotificationStateService.cs" />
+    <Compile Include="Services\RevitLinkService.cs" />
     <Compile Include="Services\SheetNumberService.cs" />
     <Compile Include="UI\ChangeJournalWindow.xaml.cs">
       <DependentUpon>ChangeJournalWindow.xaml</DependentUpon>

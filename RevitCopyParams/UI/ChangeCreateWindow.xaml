@@ -39,17 +39,7 @@
                        FontSize="14"
                        Margin="0,0,0,5"/>
 
-            <CheckBox x:Name="cbOV"
-                      Content="ОВ"/>
-
-            <CheckBox x:Name="cbVK"
-                      Content="ВК"/>
-
-            <CheckBox x:Name="cbEOM"
-                      Content="ЭОМ"/>
-
-            <CheckBox x:Name="cbAR"
-                      Content="АР"/>
+            <StackPanel x:Name="LinksPanel"/>
 
         </StackPanel>
 

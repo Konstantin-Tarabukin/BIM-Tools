@@ -1,32 +1,23 @@
-﻿using Autodesk.Revit.DB;
+﻿using System.Collections.Generic;
 using System.Windows;
 
 namespace RevitCopyParams.UI
 {
     public partial class NotificationWindow : Window
     {
-        private Document document;
-        private string eventName;
-
-        public NotificationWindow(Document document, string eventName)
+        public NotificationWindow(
+            List<ChangeRecord> records)
         {
             InitializeComponent();
 
-            this.document = document;
-            this.eventName = eventName;
-            EventText.Text = "Событие: " + eventName;
-            ProjectText.Text = "Проект: " + document.Title;
+            lvNotifications.ItemsSource = records;
         }
 
-        private void Ok_Click(object sender, RoutedEventArgs e)
+        private void Ok_Click(
+            object sender,
+            RoutedEventArgs e)
         {
             DialogResult = true;
-            Close();
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
             Close();
         }
     }

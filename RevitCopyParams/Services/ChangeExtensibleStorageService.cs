@@ -28,6 +28,8 @@ namespace RevitCopyParams
                 "JournalJson",
                 typeof(string));
 
+
+
             schema = builder.Finish();
 
             return schema;
@@ -64,6 +66,8 @@ namespace RevitCopyParams
                 entity.Set(
                     "JournalJson",
                     "[]");
+
+
 
                 storage.SetEntity(entity);
 
@@ -175,5 +179,8 @@ namespace RevitCopyParams
                 document,
                 journal);
         }
+
+        
+
     }
 }

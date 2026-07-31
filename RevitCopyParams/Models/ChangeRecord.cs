@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace RevitCopyParams
 {
@@ -8,11 +9,20 @@ namespace RevitCopyParams
         {
             Id = Guid.NewGuid();
             CreatedDate = DateTime.Now;
+            TargetModels = new List<string>();
         }
 
         public string Description { get; set; }
 
-        public string Disciplines { get; set; }
+        public List<string> TargetModels { get; set; }
+
+        public string TargetModelsText
+        {
+            get
+            {
+                return string.Join(", ", TargetModels);
+            }
+        }
 
         public DateTime CreatedDate { get; set; }
 

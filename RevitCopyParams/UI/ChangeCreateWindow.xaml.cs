@@ -1,35 +1,60 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
+using Autodesk.Revit.DB;
 
 namespace RevitCopyParams
 {
     public partial class ChangeCreateWindow : Window
     {
+        private Document _document;
+
         public string DescriptionText => DescriptionTextBox.Text;
 
-        public string SelectedDisciplines { get; private set; }
+        public List<string> SelectedModels { get; private set; }
 
-        public ChangeCreateWindow()
+        
+
+
+        public ChangeCreateWindow(Document document)
         {
             InitializeComponent();
+
+            _document = document;
+
+            LoadLinks();
+        }
+
+        private void LoadLinks()
+        {
+            List<string> links =
+                RevitLinkService.GetLoadedLinks(_document);
+
+
+            foreach (string link in links)
+            {
+                CheckBox checkBox = new CheckBox();
+
+                checkBox.Content = link;
+
+                checkBox.Margin = new Thickness(0, 2, 0, 2);
+
+                LinksPanel.Children.Add(checkBox);
+            }
         }
 
 
         private void Ok_Click(object sender, RoutedEventArgs e)
         {
-            List<string> disciplines = new List<string>();
+            List<string> selectedModels = new List<string>();
 
-            if (cbOV.IsChecked == true)
-                disciplines.Add("ОВ");
-
-            if (cbVK.IsChecked == true)
-                disciplines.Add("ВК");
-
-            if (cbEOM.IsChecked == true)
-                disciplines.Add("ЭОМ");
-
-            if (cbAR.IsChecked == true)
-                disciplines.Add("АР");
+            foreach (CheckBox checkBox in LinksPanel.Children)
+            {
+                if (checkBox.IsChecked == true)
+                {
+                    selectedModels.Add(checkBox.Content.ToString());
+                }
+            }
 
             if (string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
             {
@@ -42,7 +67,7 @@ namespace RevitCopyParams
                 return;
             }
 
-            if (disciplines.Count == 0)
+            if (selectedModels.Count == 0)
             {
                 MessageBox.Show(
                     "Выберите хотя бы один раздел.",
@@ -53,9 +78,9 @@ namespace RevitCopyParams
                 return;
             }
 
-            SelectedDisciplines = string.Join(", ", disciplines);
+SelectedModels = selectedModels;
 
-            DialogResult = true;
+DialogResult = true;
         }
 
 
