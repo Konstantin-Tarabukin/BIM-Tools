@@ -22,7 +22,7 @@ namespace RevitCopyParams
             lvJournal.Items.Clear();
 
             foreach (ChangeRecord record in
-                ChangeExtensibleStorageService.LoadJournal(
+                ChangeJournalService.GetJournalForCurrentModel(
                     _uiApp.ActiveUIDocument.Document))
             {
                 lvJournal.Items.Add(record);
@@ -63,6 +63,28 @@ namespace RevitCopyParams
             ChangeExtensibleStorageService.AddRecord(
                 _uiApp.ActiveUIDocument.Document,
                 record);
+
+            RefreshJournal();
+        }
+
+        private void lvJournal_MouseDoubleClick(
+    object sender,
+    System.Windows.Input.MouseButtonEventArgs e)
+        {
+            ChangeRecord record =
+                lvJournal.SelectedItem as ChangeRecord;
+
+            if (record == null)
+                return;
+
+            ChangeDetailsWindow window =
+                new ChangeDetailsWindow(
+                    _uiApp.ActiveUIDocument.Document,
+                    record);
+
+            window.Owner = this;
+
+            window.ShowDialog();
 
             RefreshJournal();
         }

@@ -11,11 +11,25 @@ namespace RevitCopyParams
     {
         private NotificationService notificationService =
     new NotificationService();
+
+
+
         private void OnDocumentOpened(
     object sender,
     Autodesk.Revit.DB.Events.DocumentOpenedEventArgs e)
         {
-            notificationService.CheckNotifications(e.Document, "Открытие файла");
+
+            try
+            {
+
+                notificationService.CheckNotifications(e.Document, "Открытие файла");
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show(
+                "Notification Error",
+                    ex.ToString());
+            }
         }
 
         private void OnDocumentSynchronized(

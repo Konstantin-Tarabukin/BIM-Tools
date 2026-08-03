@@ -25,7 +25,8 @@
 
         </StackPanel>
 
-        <ListView x:Name="lvJournal">
+        <ListView x:Name="lvJournal"
+                  MouseDoubleClick="lvJournal_MouseDoubleClick">
 
             <ListView.ItemTemplate>
 

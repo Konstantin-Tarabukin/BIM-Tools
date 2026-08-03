@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.ExtensibleStorage;
+using Autodesk.Revit.UI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -130,6 +131,7 @@ namespace RevitCopyParams
                         "ReadIdsJson");
 
 
+
                 if (string.IsNullOrWhiteSpace(json))
                     return new List<Guid>();
 
@@ -156,6 +158,8 @@ namespace RevitCopyParams
         public static void SaveReadIds(
             Document document,
             List<Guid> ids)
+
+
         {
 
             DataStorage storage =
@@ -194,6 +198,8 @@ namespace RevitCopyParams
 
 
                 transaction.Commit();
+
+;
             }
         }
 
@@ -234,6 +240,13 @@ namespace RevitCopyParams
             SaveReadIds(
                 document,
                 ids);
+
+            List<Guid> checkIds =
+                LoadReadIds(document);
+
+
+
+
         }
 
     }

@@ -1,0 +1,97 @@
+﻿<Window x:Class="RevitCopyParams.ChangeDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Изменение"
+        Height="450"
+        Width="600"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="15">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Grid.Row="0"
+            Text="Источник:"
+            FontWeight="Bold"/>
+
+        <TextBlock
+            Grid.Row="0"
+            Margin="100,0,0,0"
+            Name="tbSource"/>
+
+
+        <TextBlock
+            Grid.Row="1"
+            Margin="0,10,0,0"
+            Text="Дата:"
+            FontWeight="Bold"/>
+
+        <TextBlock
+            Grid.Row="1"
+            Margin="100,10,0,0"
+            Name="tbDate"/>
+
+
+        <TextBlock
+            Grid.Row="2"
+            Margin="0,10,0,0"
+            Text="Автор:"
+            FontWeight="Bold"/>
+
+        <TextBlock
+            Grid.Row="2"
+            Margin="100,10,0,0"
+            Name="tbAuthor"/>
+
+
+        <TextBlock
+            Grid.Row="3"
+            Margin="0,10,0,0"
+            Text="Получатели:"
+            FontWeight="Bold"/>
+
+        <TextBlock
+            Grid.Row="3"
+            Margin="100,10,0,0"
+            Name="tbTargets"/>
+
+
+        <TextBlock
+            Grid.Row="4"
+            Margin="0,20,0,5"
+            Text="Описание"
+            FontWeight="Bold"/>
+
+
+        <TextBox
+            Grid.Row="5"
+            Name="tbDescription"
+            IsReadOnly="True"
+            TextWrapping="Wrap"
+            VerticalScrollBarVisibility="Auto"
+            AcceptsReturn="True"/>
+
+
+        <Button
+            Grid.Row="6"
+            Width="100"
+            Height="30"
+            Margin="0,15,0,0"
+            HorizontalAlignment="Right"
+            Click="Close_Click">
+            Закрыть
+        </Button>
+
+    </Grid>
+
+</Window>

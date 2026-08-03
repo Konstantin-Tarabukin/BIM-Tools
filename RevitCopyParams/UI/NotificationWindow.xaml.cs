@@ -20,5 +20,18 @@ namespace RevitCopyParams.UI
             DialogResult = true;
             Close();
         }
+
+
+
+        protected override void OnClosing(
+    System.ComponentModel.CancelEventArgs e)
+        {
+            if (DialogResult != true)
+            {
+                DialogResult = false;
+            }
+
+            base.OnClosing(e);
+        }
     }
 }

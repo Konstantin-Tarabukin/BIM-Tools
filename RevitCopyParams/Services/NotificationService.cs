@@ -61,6 +61,8 @@ namespace RevitCopyParams
                     }
 
 
+
+
                     notifications.Add(record);
                 }
             }
@@ -83,18 +85,19 @@ namespace RevitCopyParams
             helper.Owner =
                 Process.GetCurrentProcess().MainWindowHandle;
 
-            window.ShowDialog();
+            bool? userConfirmed = window.ShowDialog();
 
 
+            if (userConfirmed == true)
+            {
+                foreach (ChangeRecord record in notifications)
+                {
+                    NotificationStateService.MarkAsRead(
+                        document,
+                        record.Id);
+                }
+            }
 
-            
-                        foreach (ChangeRecord record in notifications)
-                        {
-                            NotificationStateService.MarkAsRead(
-                                document,
-                                record.Id);
-                        }
-            
         }
     }
 }
