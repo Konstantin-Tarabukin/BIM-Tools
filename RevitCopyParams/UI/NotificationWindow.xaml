@@ -65,11 +65,16 @@
                 <Run Text="{Binding Author}"/>
                             </TextBlock>
 
-                            <TextBlock Margin="0,2,0,0">
-                <Run FontWeight="Bold"
-                     Text="Получатели: "/>
-                <Run Text="{Binding TargetModelsText}"/>
-                            </TextBlock>
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+
+                                <TextBlock
+        FontWeight="Bold"
+        Text="Получатели: "/>
+
+                                <TextBlock
+        Text="{Binding TargetModelsText}"/>
+
+                            </StackPanel>
 
                         </StackPanel>
 

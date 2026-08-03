@@ -18,6 +18,8 @@ namespace RevitCopyParams
             string eventName)
         {
 
+
+
             string currentModel =
                 RevitLinkService.GetModelName(document);
 
@@ -40,11 +42,16 @@ namespace RevitCopyParams
                     ChangeExtensibleStorageService.LoadJournal(
                         linkDocument);
 
+
+
+
                 foreach (ChangeRecord record in records)
                 {
+
+
+
                     if (!record.TargetModels.Contains(currentModel))
                         continue;
-
 
                     if (NotificationStateService.IsRead(
                             document,
@@ -60,7 +67,6 @@ namespace RevitCopyParams
 
 
 
-
             if (notifications.Count == 0)
             {
                 return;
@@ -69,29 +75,26 @@ namespace RevitCopyParams
 
 
             NotificationWindow window =
-                new NotificationWindow(
-                    notifications);
-
-
+                new NotificationWindow(notifications);
 
             WindowInteropHelper helper =
                 new WindowInteropHelper(window);
 
-
             helper.Owner =
-                Process.GetCurrentProcess()
-                .MainWindowHandle;
-
+                Process.GetCurrentProcess().MainWindowHandle;
 
             window.ShowDialog();
 
-            foreach (ChangeRecord record in notifications)
-            {
-                NotificationStateService.MarkAsRead(
-                    document,
-                    record.Id);
-            }
 
+
+            
+                        foreach (ChangeRecord record in notifications)
+                        {
+                            NotificationStateService.MarkAsRead(
+                                document,
+                                record.Id);
+                        }
+            
         }
     }
 }
