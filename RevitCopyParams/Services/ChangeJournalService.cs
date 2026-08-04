@@ -48,7 +48,8 @@ namespace RevitCopyParams
 
 
             return result
-                .OrderByDescending(x => x.CreatedDate)
+                .OrderBy(x => GetStatusPriority(x.Status))
+                .ThenByDescending(x => x.CreatedDate)
                 .ToList();
         }
 
@@ -80,6 +81,27 @@ namespace RevitCopyParams
             {
                 record.Status =
                     ChangeStatus.New;
+            }
+        }
+
+
+
+        private static int GetStatusPriority(
+    ChangeStatus status)
+        {
+            switch (status)
+            {
+                case ChangeStatus.New:
+                    return 0;
+
+                case ChangeStatus.Read:
+                    return 1;
+
+                case ChangeStatus.Mine:
+                    return 2;
+
+                default:
+                    return 3;
             }
         }
     }

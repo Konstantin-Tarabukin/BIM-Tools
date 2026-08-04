@@ -47,7 +47,8 @@
         </StackPanel>
 
         <ListView x:Name="lvJournal"
-                  MouseDoubleClick="lvJournal_MouseDoubleClick">
+          MouseDoubleClick="lvJournal_MouseDoubleClick"
+          KeyDown="lvJournal_KeyDown">
 
             <ListView.ItemTemplate>
                 <DataTemplate>

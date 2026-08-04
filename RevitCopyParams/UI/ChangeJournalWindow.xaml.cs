@@ -69,9 +69,7 @@ namespace RevitCopyParams
             RefreshJournal();
         }
 
-        private void lvJournal_MouseDoubleClick(
-    object sender,
-    System.Windows.Input.MouseButtonEventArgs e)
+        private void OpenSelectedRecord()
         {
             ChangeRecord record =
                 lvJournal.SelectedItem as ChangeRecord;
@@ -89,6 +87,26 @@ namespace RevitCopyParams
             window.ShowDialog();
 
             RefreshJournal();
+        }
+
+        private void lvJournal_MouseDoubleClick(
+            object sender,
+            System.Windows.Input.MouseButtonEventArgs e)
+        {
+            OpenSelectedRecord();
+        }
+
+
+        private void lvJournal_KeyDown(
+    object sender,
+    System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter)
+                return;
+
+            OpenSelectedRecord();
+
+            e.Handled = true;
         }
     }
 }
