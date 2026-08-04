@@ -199,7 +199,7 @@ namespace RevitCopyParams
 
                 transaction.Commit();
 
-;
+
             }
         }
 
@@ -225,28 +225,37 @@ namespace RevitCopyParams
             Document document,
             Guid id)
         {
-
-            List<Guid> ids =
-                LoadReadIds(document);
-
-
-            if (ids.Contains(id))
-                return;
-
-
-            ids.Add(id);
-
-
-            SaveReadIds(
+            MarkAsRead(
                 document,
-                ids);
+                new[] { id });
+        
+        }
 
-            List<Guid> checkIds =
+
+        public static void MarkAsRead(
+    Document document,
+    IEnumerable<Guid> ids)
+        {
+            List<Guid> readIds =
                 LoadReadIds(document);
 
+            bool hasChanges = false;
 
+            foreach (Guid id in ids)
+            {
+                if (readIds.Contains(id))
+                    continue;
 
+                readIds.Add(id);
+                hasChanges = true;
+            }
 
+            if (hasChanges)
+            {
+                SaveReadIds(
+                    document,
+                    readIds);
+            }
         }
 
     }

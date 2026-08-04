@@ -52,10 +52,12 @@ namespace RevitCopyParams
                 TargetModels = createWindow.SelectedModels,
 
 
-                Author = _uiApp.Application.Username, 
+                Author = _uiApp.Application.Username,
 
 
-                SourceModel = _uiApp.ActiveUIDocument.Document.Title
+                SourceModel =
+    RevitLinkService.GetModelName(
+        _uiApp.ActiveUIDocument.Document)
             };
 
 

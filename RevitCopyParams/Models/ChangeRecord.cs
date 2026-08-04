@@ -32,6 +32,9 @@ namespace RevitCopyParams
 
         public Guid Id { get; set; }
 
-        
+
+        public ChangeStatus Status { get; set; }
+
+
     }
 }

@@ -64,6 +64,9 @@
     <Compile Include="Commands\CreatePipesCommand.cs" />
     <Compile Include="Commands\SheetNumberCommand.cs" />
     <Compile Include="Models\ChangeRecord.cs" />
+    <Compile Include="Models\ChangeStatus.cs" />
+    <Compile Include="Models\ChangeStatusToBrushConverter.cs" />
+    <Compile Include="Models\ChangeStatusToTextConverter.cs" />
     <Compile Include="Models\SheetNode.cs" />
     <Compile Include="Models\SheetRow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

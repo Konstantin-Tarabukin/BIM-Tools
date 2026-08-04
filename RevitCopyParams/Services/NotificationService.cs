@@ -90,12 +90,9 @@ namespace RevitCopyParams
 
             if (userConfirmed == true)
             {
-                foreach (ChangeRecord record in notifications)
-                {
-                    NotificationStateService.MarkAsRead(
-                        document,
-                        record.Id);
-                }
+                NotificationStateService.MarkAsRead(
+                    document,
+                    notifications.Select(x => x.Id));
             }
 
         }

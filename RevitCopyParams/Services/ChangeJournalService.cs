@@ -20,7 +20,11 @@ namespace RevitCopyParams
             List<ChangeRecord> currentRecords =
                 ChangeExtensibleStorageService.LoadJournal(document);
 
-            result.AddRange(currentRecords);
+            foreach (ChangeRecord record in currentRecords)
+            {
+                FillReadStatus(document, record);
+                result.Add(record);
+            }
 
 
             // Записи связанных моделей
@@ -34,10 +38,11 @@ namespace RevitCopyParams
 
                 foreach (ChangeRecord record in records)
                 {
-                    if (record.TargetModels.Contains(currentModel))
-                    {
-                        result.Add(record);
-                    }
+                    if (!record.TargetModels.Contains(currentModel))
+                        continue;
+
+                    FillReadStatus(document, record);
+                    result.Add(record);
                 }
             }
 
@@ -45,6 +50,37 @@ namespace RevitCopyParams
             return result
                 .OrderByDescending(x => x.CreatedDate)
                 .ToList();
+        }
+
+
+        private static void FillReadStatus(
+            Document document,
+            ChangeRecord record)
+        {
+            string currentModel =
+                RevitLinkService.GetModelName(document);
+
+            if (record.SourceModel == currentModel &&
+                record.Author == document.Application.Username)
+            {
+                record.Status =
+                    ChangeStatus.Mine;
+
+                return;
+            }
+
+            if (NotificationStateService.IsRead(
+                    document,
+                    record.Id))
+            {
+                record.Status =
+                    ChangeStatus.Read;
+            }
+            else
+            {
+                record.Status =
+                    ChangeStatus.New;
+            }
         }
     }
 }
