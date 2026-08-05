@@ -25,8 +25,6 @@
 
     </Window.Resources>
 
-
-
     <DockPanel Margin="10">
 
         <StackPanel
@@ -46,7 +44,9 @@
 
         </StackPanel>
 
-        <ListView x:Name="lvJournal"
+        <Grid>
+
+            <ListView x:Name="lvJournal"
           MouseDoubleClick="lvJournal_MouseDoubleClick"
           KeyDown="lvJournal_KeyDown">
 
@@ -54,67 +54,73 @@
                 <DataTemplate>
 
                     <Border
-            BorderBrush="#D8D8D8"
-            BorderThickness="1"
-            CornerRadius="6"
-            Margin="0,0,0,8"
-            Padding="10">
+                        BorderBrush="#D8D8D8"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Margin="0,0,0,8"
+                        Padding="10">
 
                         <StackPanel>
 
-                            <!-- Здесь позже появится статус -->
+                            <!-- Статус и метка редактирования -->
                             <StackPanel Orientation="Horizontal">
 
                                 <Ellipse
-        Width="10"
-        Height="10"
-        Margin="0,2,6,0"
-        Fill="{Binding Status,
-                       Converter={StaticResource StatusBrushConverter}}"/>
+                                    Width="10"
+                                    Height="10"
+                                    Margin="0,2,6,0"
+                                    Fill="{Binding Status, Converter={StaticResource StatusBrushConverter}}"/>
 
                                 <TextBlock
-        FontWeight="SemiBold"
-        Foreground="{Binding Status,
-                             Converter={StaticResource StatusBrushConverter}}"
-        Text="{Binding Status,
-                       Converter={StaticResource StatusTextConverter}}"/>
+                                    FontWeight="SemiBold"
+                                    Foreground="{Binding Status, Converter={StaticResource StatusBrushConverter}}"
+                                    Text="{Binding Status, Converter={StaticResource StatusTextConverter}}"/>
+
+                                <TextBlock
+                                    Margin="15,0,0,0"
+                                    FontWeight="SemiBold"
+                                    Foreground="#555555"
+                                    Text="{Binding EditedDisplay}"/>
 
                             </StackPanel>
 
+                            <!-- Дата создания (теперь через DisplayDate) -->
                             <TextBlock
-    Margin="0,4,0,0"
-    Text="{Binding CreatedDate,
-                   StringFormat=dd.MM.yyyy HH:mm}"
-    FontWeight="Bold"/>
+                                Margin="0,4,0,0"
+                                Text="{Binding DisplayDate}"
+                                FontWeight="Bold"/>
 
+                            <!-- Направление -->
                             <StackPanel
-                    Orientation="Horizontal"
-                    Margin="0,4,0,0">
+                                Orientation="Horizontal"
+                                Margin="0,4,0,0">
 
                                 <TextBlock
-                        Text="{Binding SourceModel}"
-                        FontWeight="SemiBold"/>
+                                    Text="{Binding SourceModel}"
+                                    FontWeight="SemiBold"/>
 
                                 <TextBlock
-                        Text=" → "
-                        FontWeight="SemiBold"/>
+                                    Text=" → "
+                                    FontWeight="SemiBold"/>
 
                                 <TextBlock
-                        Text="{Binding TargetModelsText}"/>
+                                    Text="{Binding TargetModelsText}"/>
 
                             </StackPanel>
 
+                            <!-- Описание -->
                             <TextBlock
-                    Margin="0,8,0,0"
-                    Text="{Binding Description}"
-                    TextWrapping="Wrap"
-                    FontSize="13"/>
+                                Margin="0,8,0,0"
+                                Text="{Binding Description}"
+                                TextWrapping="Wrap"
+                                FontSize="13"/>
 
+                            <!-- Автор -->
                             <TextBlock
-                    Margin="0,8,0,0"
-                    Text="{Binding Author}"
-                    Foreground="Gray"
-                    FontSize="11"/>
+                                Margin="0,8,0,0"
+                                Text="{Binding Author}"
+                                Foreground="Gray"
+                                FontSize="11"/>
 
                         </StackPanel>
 
@@ -124,6 +130,18 @@
             </ListView.ItemTemplate>
 
         </ListView>
+
+
+            <TextBlock
+        x:Name="txtEmptyState"
+        Text="Изменений нет"
+        FontSize="16"
+        Foreground="Gray"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Visibility="Collapsed"/>
+
+        </Grid>
 
     </DockPanel>
 

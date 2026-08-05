@@ -35,6 +35,24 @@ namespace RevitCopyParams
 
         public ChangeStatus Status { get; set; }
 
+        public bool IsEdited { get; set; }
 
+        public DateTime? ModifiedDate { get; set; }
+
+        public string DisplayDate
+        {
+            get
+            {
+                return CreatedDate.ToString("dd.MM.yyyy HH:mm");
+            }
+        }
+
+        public string EditedDisplay
+        {
+            get
+            {
+                return IsEdited ? "✎ Изменено" : string.Empty;
+            }
+        }
     }
 }

@@ -180,7 +180,33 @@ namespace RevitCopyParams
                 journal);
         }
 
-        
+
+        public static void UpdateRecord(
+    Document document,
+    ChangeRecord updatedRecord)
+        {
+            List<ChangeRecord> journal =
+                LoadJournal(document);
+
+            for (int i = 0; i < journal.Count; i++)
+            {
+                if (journal[i].Id != updatedRecord.Id)
+                    continue;
+
+                journal[i] = updatedRecord;
+
+                SaveJournal(
+                    document,
+                    journal);
+
+                return;
+            }
+        }
+
+
+
+
+
 
     }
 }

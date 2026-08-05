@@ -3,20 +3,39 @@ using System.Windows;
 
 namespace RevitCopyParams
 {
-    public partial class ChangeDetailsWindow : Window
-    {
-        public ChangeDetailsWindow(
+
+
+
+        public partial class ChangeDetailsWindow : Window
+        {
+            private readonly Autodesk.Revit.DB.Document _document;
+
+            private readonly ChangeRecord _record;
+
+            public bool EditRequested
+            {
+                get;
+                private set;
+            }
+            public ChangeDetailsWindow(
             Autodesk.Revit.DB.Document document,
             ChangeRecord record)
         {
             InitializeComponent();
 
+            _document = document;
+
+            if (record.Status == ChangeStatus.Mine)
+            {
+                btnEdit.Visibility =
+                    Visibility.Visible;
+            }
+
             tbSource.Text =
                 record.SourceModel;
 
             tbDate.Text =
-                record.CreatedDate.ToString(
-                    "dd.MM.yyyy HH:mm");
+                record.DisplayDate;
 
             tbAuthor.Text =
                 record.Author;
@@ -40,5 +59,24 @@ namespace RevitCopyParams
         {
             Close();
         }
+
+
+        private void Edit_Click(
+    object sender,
+    RoutedEventArgs e)
+        {
+            EditRequested = true;
+
+            DialogResult = true;
+        }
+
+
     }
+
+
+
+
+
+
+
 }

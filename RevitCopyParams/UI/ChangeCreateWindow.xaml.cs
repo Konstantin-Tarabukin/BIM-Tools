@@ -9,11 +9,15 @@ namespace RevitCopyParams
     {
         private Document _document;
 
-        public string DescriptionText => DescriptionTextBox.Text;
+        private ChangeRecord _editingRecord;
 
-        public List<string> SelectedModels { get; private set; }
+        public ChangeRecord ResultRecord
+        {
+            get;
+            private set;
+        }
 
-        
+
 
 
         public ChangeCreateWindow(Document document)
@@ -25,6 +29,29 @@ namespace RevitCopyParams
             LoadLinks();
         }
 
+
+        public ChangeCreateWindow(
+    Document document,
+    ChangeRecord record)
+    : this(document)
+        {
+            _editingRecord = record;
+
+            Title = "Редактирование изменения";
+
+            DescriptionTextBox.Text =
+                record.Description;
+
+            foreach (System.Windows.Controls.CheckBox checkBox
+                in LinksPanel.Children)
+            {
+                if (record.TargetModels.Contains(
+                    checkBox.Content.ToString()))
+                {
+                    checkBox.IsChecked = true;
+                }
+            }
+        }
         private void LoadLinks()
         {
             List<string> links =
@@ -78,9 +105,21 @@ namespace RevitCopyParams
                 return;
             }
 
-SelectedModels = selectedModels;
+            ChangeRecord record = _editingRecord ?? new ChangeRecord();
 
-DialogResult = true;
+            record.Description = DescriptionTextBox.Text;
+
+            record.TargetModels = selectedModels;
+
+            if (_editingRecord != null)
+            {
+                record.IsEdited = true;
+                record.ModifiedDate = System.DateTime.Now;
+            }
+
+            ResultRecord = record;
+
+            DialogResult = true;
         }
 
 

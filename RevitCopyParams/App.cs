@@ -45,6 +45,8 @@ namespace RevitCopyParams
         {
             notificationService.CheckNotifications(e.Document,  "Обновить до последней версии");
         }
+
+
         public Result OnStartup(UIControlledApplication application)
         {
             string tabName = "BIM Tools";
@@ -64,6 +66,7 @@ namespace RevitCopyParams
             application.ControlledApplication.DocumentOpened += OnDocumentOpened;
             application.ControlledApplication.DocumentSynchronizedWithCentral += OnDocumentSynchronized;
             application.ControlledApplication.DocumentReloadedLatest += OnReloadLatest;
+
 
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
             string assemblyFolder = Path.GetDirectoryName(assemblyPath);
