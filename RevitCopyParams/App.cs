@@ -78,7 +78,7 @@ namespace RevitCopyParams
                 "CopyParams",
                 "Копировать",
                 "RevitCopyParams.CopyParamsToInsulation",
-                "Копирует параметры с воздуховодов/труб на изоляцию",
+                "Копирует параметры ADSK с воздуховодов/труб на изоляцию",
                 "CopyParams");
             //Кнопка 2
             CreateButton(
