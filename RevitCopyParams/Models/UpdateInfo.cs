@@ -10,10 +10,15 @@ namespace RevitCopyParams.Models
 
         public string DownloadUrl { get; set; }
 
+
+
         public bool UpdateAvailable
         {
             get
             {
+                if (CurrentVersion == null || LatestVersion == null)
+                    return false;
+
                 return LatestVersion > CurrentVersion;
             }
         }

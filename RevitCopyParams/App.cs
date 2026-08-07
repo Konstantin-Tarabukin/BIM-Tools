@@ -1,16 +1,39 @@
-﻿using System;
+﻿using Autodesk.Revit.DB.Events;// используем для сокращения имени класса "Autodesk.Revit.DB.Events.DocumentOpenedEventArgs"
+using Autodesk.Revit.UI;
+using RevitCopyParams.Models;
+using RevitCopyParams.Services;
+using System;
 using System.IO;
 using System.Reflection;
-using System.Windows.Media.Imaging;
-using Autodesk.Revit.UI;
-using Autodesk.Revit.DB.Events;// используем для сокращения имени класса "Autodesk.Revit.DB.Events.DocumentOpenedEventArgs"
+using System.Threading.Tasks;
 using System.Windows.Interop;
+using System.Windows.Media.Imaging;
+
+
 namespace RevitCopyParams
 {
     public class App : IExternalApplication
     {
+        private void OnIdling(object sender, Autodesk.Revit.UI.Events.IdlingEventArgs e)
+        {
+            if (pendingUpdateInfo == null)
+                return;
+
+            UpdateInfo updateInfo = pendingUpdateInfo;
+            pendingUpdateInfo = null;
+
+            TaskDialog.Show(
+                "BIM Tools",
+                $"CurrentVersion: {updateInfo.CurrentVersion}\n" +
+                $"LatestVersion: {updateInfo.LatestVersion}\n" +
+                $"UpdateAvailable: {updateInfo.UpdateAvailable}");
+        }
+
+
+
         private NotificationService notificationService =
     new NotificationService();
+        private UpdateInfo pendingUpdateInfo;
 
 
 
@@ -26,9 +49,7 @@ namespace RevitCopyParams
             }
             catch (Exception ex)
             {
-                TaskDialog.Show(
-                "Notification Error",
-                    ex.ToString());
+
             }
         }
 
@@ -47,12 +68,20 @@ namespace RevitCopyParams
         }
 
 
+
+
         public Result OnStartup(UIControlledApplication application)
         {
+            application.Idling += OnIdling;
+
+            Task.Run(() => TestUpdateService());
+
             string tabName = "BIM Tools";
 
 
-        try
+
+
+            try
             {
                 application.CreateRibbonTab(tabName);
             }
@@ -170,12 +199,30 @@ namespace RevitCopyParams
 
         public Result OnShutdown(UIControlledApplication application)
         {
+            application.Idling -= OnIdling;
             application.ControlledApplication.DocumentOpened -= OnDocumentOpened;
             application.ControlledApplication.DocumentSynchronizedWithCentral -= OnDocumentSynchronized;
             application.ControlledApplication.DocumentReloadedLatest -= OnReloadLatest;
 
             return Result.Succeeded;
         }
+
+        private async System.Threading.Tasks.Task TestUpdateService()
+        {
+            try
+            {
+                var updateInfo = await UpdateService.GetLatestRelease();
+
+                pendingUpdateInfo = updateInfo;
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.WriteAllText(
+                    @"C:\Temp\BIMToolsUpdateError.txt",
+                    ex.ToString());
+            }
+        }
+
 
     }
 

@@ -65,6 +65,7 @@
     <Compile Include="Commands\CopyParamsToInsulation.cs" />
     <Compile Include="Commands\CreatePipesCommand.cs" />
     <Compile Include="Commands\SheetNumberCommand.cs" />
+    <Compile Include="Config\UpdateSettings.cs" />
     <Compile Include="Models\ChangeRecord.cs" />
     <Compile Include="Models\ChangeStatus.cs" />
     <Compile Include="Models\ChangeStatusToBrushConverter.cs" />
