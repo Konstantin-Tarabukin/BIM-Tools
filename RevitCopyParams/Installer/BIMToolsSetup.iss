@@ -1,22 +1,28 @@
 #define MyAppName "BIM Tools"
 #define MyAppVersion "0.4.1"
 #define MyAppPublisher "TarabukinConst"
+
 #define ProjectDir ".."
 #define BuildDir ProjectDir + "\bin\Release"
+#define UpdaterBuildDir "..\..\BIMToolsUpdater\bin\Release"
+
 #if !FileExists(BuildDir + "\RevitCopyParams.dll")
-  #error "Сначала соберите проект в Release."
-#endif
-#if !FileExists(BuildDir + "\RevitCopyParams.dll")
-  #error "Release build not found."
+#error "Сначала соберите проект RevitCopyParams в Release."
 #endif
 
 #if !FileExists(BuildDir + "\Newtonsoft.Json.dll")
-  #error "Newtonsoft.Json.dll not found in Release."
+#error "Newtonsoft.Json.dll not found in Release."
 #endif
 
-#if !DirExists(ProjectDir + "\Resources")
-  #error "Resources folder not found."
+#if !FileExists(UpdaterBuildDir + "\BIMToolsUpdater.exe")
+#error "BIMToolsUpdater.exe not found in BIMToolsUpdater\bin\Release. Сначала соберите Solution в Release."
 #endif
+
+
+#if !DirExists(ProjectDir + "\Resources")
+#error "Resources folder not found."
+#endif
+
 
 [Setup]
 
@@ -32,7 +38,10 @@ VersionInfoProductVersion={#MyAppVersion}.0
 DefaultDirName={autopf}\BIM Tools
 DefaultGroupName={#MyAppName}
 
+; Нужны права администратора для удаления старой
+; версии из ProgramData.
 PrivilegesRequired=admin
+
 ArchitecturesInstallIn64BitMode=x64
 
 Compression=lzma2
@@ -47,34 +56,55 @@ DisableProgramGroupPage=yes
 Uninstallable=yes
 
 
-
 [Files]
 
+; ============================================================
+; ОСНОВНАЯ DLL
+; ============================================================
+
 Source: "{#BuildDir}\RevitCopyParams.dll"; \
-DestDir: "{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams"; \
-Flags: ignoreversion overwritereadonly restartreplace uninsrestartdelete
+    DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams"; \
+    Flags: ignoreversion overwritereadonly restartreplace uninsrestartdelete
+
+
+; ============================================================
+; NEWTONSOFT.JSON
+; ============================================================
 
 Source: "{#BuildDir}\Newtonsoft.Json.dll"; \
-DestDir: "{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams"; \
-Flags: ignoreversion overwritereadonly restartreplace uninsrestartdelete
+    DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams"; \
+    Flags: ignoreversion overwritereadonly restartreplace uninsrestartdelete
 
 
+; ============================================================
+; РЕСУРСЫ
+; ============================================================
 
 Source: "{#ProjectDir}\Resources\*"; \
-DestDir: "{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams\Resources"; \
-Flags: ignoreversion overwritereadonly restartreplace recursesubdirs createallsubdirs
+    DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams\Resources"; \
+    Flags: ignoreversion overwritereadonly restartreplace recursesubdirs createallsubdirs
 
+
+; ============================================================
+; UPDATER
+; ============================================================
+
+Source: "{#UpdaterBuildDir}\BIMToolsUpdater.exe"; \
+DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams\Updater"; \
+Flags: ignoreversion overwritereadonly restartreplace uninsrestartdelete
 
 
 [UninstallDelete]
 
-Type: filesandordirs; \
-Name: "{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams"
+; Удаляем установленный плагин из AppData
 
+Type: filesandordirs; \
+    Name: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams"
+
+; Удаляем .addin
 
 Type: files; \
-Name: "{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams.addin"
-
+    Name: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams.addin"
 
 
 [Code]
@@ -83,7 +113,6 @@ Name: "{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams.addin"
 function IsRevitRunning(): Boolean;
 var
   ResultCode: Integer;
-
 begin
 
   Result := False;
@@ -103,81 +132,117 @@ begin
 end;
 
 
-
 function IsRevit2023Installed(): Boolean;
-
 begin
 
   Result :=
     DirExists(
       ExpandConstant(
-        '{commonappdata}\Autodesk\Revit\Addins\2023'
+        '{userappdata}\Autodesk\Revit\Addins\2023'
       )
     );
 
 end;
 
 
-
-procedure CreateAddinFile();
-
+procedure RemoveOldProgramDataInstallation();
 var
-  AddinPath: String;
-  AddinText: String;
-
+  OldPluginDir: String;
+  OldAddinFile: String;
 begin
 
+  OldPluginDir :=
+    ExpandConstant(
+      '{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams'
+    );
 
-  AddinPath :=
+  OldAddinFile :=
     ExpandConstant(
       '{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams.addin'
     );
 
 
+  { Удаляем старую папку плагина }
+
+  if DirExists(OldPluginDir) then
+  begin
+
+    DelTree(
+      OldPluginDir,
+      True,
+      True,
+      True
+    );
+
+  end;
+
+
+  { Удаляем старый .addin }
+
+  if FileExists(OldAddinFile) then
+  begin
+
+    DeleteFile(OldAddinFile);
+
+  end;
+
+end;
+
+
+procedure CreateAddinFile();
+var
+  AddinPath: String;
+  AddinText: String;
+  DllPath: String;
+begin
+
+  AddinPath :=
+    ExpandConstant(
+      '{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams.addin'
+    );
+
+
+  DllPath :=
+    ExpandConstant(
+      '{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams\RevitCopyParams.dll'
+    );
+
+
   AddinText :=
-
     '<?xml version="1.0" encoding="utf-8" standalone="no"?>'
-    + #13#10 +
-
-    '<RevitAddIns>'
-    + #13#10 +
-
-    '  <AddIn Type="Application">'
-    + #13#10 +
-
-    '    <Name>RevitCopyParams</Name>'
-    + #13#10 +
-
-    '    <Assembly>'
-    +
-
-      ExpandConstant(
-        '{commonappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams\RevitCopyParams.dll'
-      )
-
-    +
-
-    '</Assembly>'
-    + #13#10 +
-
-    '    <AddInId>7AC1B09C-4C4D-4DA6-869F-4CE027F1A8B2</AddInId>'
-    + #13#10 +
-
-    '    <FullClassName>RevitCopyParams.App</FullClassName>'
-    + #13#10 +
-
-    '    <VendorId>BIMT</VendorId>'
-    + #13#10 +
-
-    '  </AddIn>'
-    + #13#10 +
-
-    '</RevitAddIns>';
+    + #13#10
+    + '<RevitAddIns>'
+    + #13#10
+    + #13#10
+    + '  <AddIn Type="Application">'
+    + #13#10
+    + #13#10
+    + '    <Name>RevitCopyParams</Name>'
+    + #13#10
+    + #13#10
+    + '    <Assembly>'
+    + DllPath
+    + '</Assembly>'
+    + #13#10
+    + #13#10
+    + '    <AddInId>7AC1B09C-4C4D-4DA6-869F-4CE027F1A8B2</AddInId>'
+    + #13#10
+    + #13#10
+    + '    <FullClassName>RevitCopyParams.App</FullClassName>'
+    + #13#10
+    + #13#10
+    + '    <VendorId>BIMT</VendorId>'
+    + #13#10
+    + #13#10
+    + '  </AddIn>'
+    + #13#10
+    + #13#10
+    + '</RevitAddIns>';
 
 
   ForceDirectories(
     ExpandConstant(
-      '{commonappdata}\Autodesk\Revit\Addins\2023'
+      '{userappdata}\Autodesk\Revit\Addins\2023'
     )
   );
 
@@ -188,34 +253,27 @@ begin
     False
   );
 
-
 end;
 
 
-
 function InitializeSetup(): Boolean;
-
 var
   MsgBoxResult: Integer;
-
 begin
 
+  { ==========================================================
+    Проверяем, закрыт ли Revit
+    ========================================================== }
 
   if IsRevitRunning() then
-
   begin
 
     MsgBox(
-
       'Revit сейчас запущен.' + #13#10 +
       'Закройте Revit перед установкой BIM Tools.',
-
       mbError,
-
       MB_OK
-
     );
-
 
     Result := False;
     Exit;
@@ -223,50 +281,55 @@ begin
   end;
 
 
+  { ==========================================================
+    Проверяем наличие Revit 2023
+    ========================================================== }
 
   if not IsRevit2023Installed() then
-
   begin
 
-
     MsgBoxResult :=
-
       MsgBox(
-
         'Revit 2023 не найден автоматически.' + #13#10 +
         'Продолжить установку BIM Tools?',
-
         mbConfirmation,
-
         MB_YESNO
-
       );
 
 
     Result :=
       MsgBoxResult = IDYES;
 
-
     Exit;
 
   end;
 
 
-
   Result := True;
-
 
 end;
 
 
-
-
 procedure CurStepChanged(CurStep: TSetupStep);
-
 begin
 
-  if CurStep = ssPostInstall then
+  { ==========================================================
+    Перед установкой файлов удаляем старую ProgramData-версию
+    ========================================================== }
 
+  if CurStep = ssInstall then
+  begin
+
+    RemoveOldProgramDataInstallation();
+
+  end;
+
+
+  { ==========================================================
+    После установки создаём новый .addin в AppData
+    ========================================================== }
+
+  if CurStep = ssPostInstall then
   begin
 
     CreateAddinFile();

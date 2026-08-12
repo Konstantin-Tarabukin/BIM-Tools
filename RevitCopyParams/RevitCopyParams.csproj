@@ -13,6 +13,17 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
+  <!-- RELEASE -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <!-- DEBUG -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -22,14 +33,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -150,16 +153,50 @@
     <Content Include="Resources\SheetNumber16.png" />
     <Content Include="Resources\SheetNumber32.png" />
   </ItemGroup>
+  <!-- BIMToolsUpdater -->
+  <ItemGroup>
+    <ProjectReference Include="..\BIMToolsUpdater\BIMToolsUpdater.csproj">
+      <Project>{3AF262E1-4ADD-491D-9F3A-5134F0DDFB0B}</Project>
+      <Name>BIMToolsUpdater</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams"
+    <PostBuildEvent>set "RevitAddins=%25AppData%25\Autodesk\Revit\Addins\2023"
+set "PluginDir=%25RevitAddins%25\RevitCopyParams"
 
-if not exist "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams\Resources" mkdir "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams\Resources"
+if not exist "%25PluginDir%25" mkdir "%25PluginDir%25"
 
-copy "$(TargetPath)" "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams\" /Y
+if not exist "%25PluginDir%25\Resources" mkdir "%25PluginDir%25\Resources"
 
-copy "$(ProjectDir)RevitCopyParams.addin" "C:\ProgramData\Autodesk\Revit\Addins\2023\" /Y
+copy "$(TargetPath)" "%25PluginDir%25\" /Y
 
-xcopy "$(ProjectDir)Resources\*.*" "C:\ProgramData\Autodesk\Revit\Addins\2023\RevitCopyParams\Resources\" /Y /E</PostBuildEvent>
+xcopy "$(ProjectDir)Resources\*.*" "%25PluginDir%25\Resources\" /Y /E
+
+(
+echo ^&lt;?xml version="1.0" encoding="utf-8" standalone="no"?^&gt;
+echo ^&lt;RevitAddIns^&gt;
+echo.
+echo   ^&lt;AddIn Type="Application"^&gt;
+echo.
+echo     ^&lt;Name^&gt;RevitCopyParams^&lt;/Name^&gt;
+echo.
+echo     ^&lt;Assembly^&gt;%25PluginDir%25\RevitCopyParams.dll^&lt;/Assembly^&gt;
+echo.
+echo     ^&lt;AddInId^&gt;7AC1B09C-4C4D-4DA6-869F-4CE027F1A8B2^&lt;/AddInId^&gt;
+echo.
+echo     ^&lt;FullClassName^&gt;RevitCopyParams.App^&lt;/FullClassName^&gt;
+echo.
+echo     ^&lt;VendorId^&gt;ADSK^&lt;/VendorId^&gt;
+echo.
+echo   ^&lt;/AddIn^&gt;
+echo.
+echo ^&lt;/RevitAddIns^&gt;
+) &gt; "%25RevitAddins%25\RevitCopyParams.addin"
+
+if not exist "%25PluginDir%25\Updater" mkdir "%25PluginDir%25\Updater"
+
+copy "$(SolutionDir)BIMToolsUpdater\bin\Release\BIMToolsUpdater.exe" "%25PluginDir%25\Updater\" /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

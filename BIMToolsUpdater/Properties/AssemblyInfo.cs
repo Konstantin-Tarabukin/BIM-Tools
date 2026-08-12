@@ -4,30 +4,30 @@ using System.Runtime.InteropServices;
 
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,
-// связанные со сборкой.
-[assembly: AssemblyTitle("RevitCopyParams")]
-[assembly: AssemblyDescription("Копирование параметров в изоляцию")]
+// связанные с этой сборкой.
+[assembly: AssemblyTitle("BIMToolsUpdater")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("TarabukinConst")]
-[assembly: AssemblyProduct("RevitCopyParams")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("BIMToolsUpdater")]
 [assembly: AssemblyCopyright("Copyright ©  2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Установка значения False для параметра ComVisible делает типы в этой сборке невидимыми
 // для компонентов COM. Если необходимо обратиться к типу в этой сборке через
-// COM, задайте атрибуту ComVisible значение TRUE для этого типа.
+// из модели COM задайте для атрибута ComVisible этого типа значение true.
 [assembly: ComVisible(false)]
 
-// Следующий GUID служит для идентификации библиотеки типов, если этот проект будет видимым для COM
-[assembly: Guid("391dce30-1b0c-440c-a8d1-5ace533deee2")]
+// Следующий GUID представляет идентификатор typelib, если этот проект доступен из модели COM
+[assembly: Guid("3af262e1-4add-491d-9f3a-5134f0ddfb0b")]
 
 // Сведения о версии сборки состоят из указанных ниже четырех значений:
 //
 //      Основной номер версии
 //      Дополнительный номер версии
 //      Номер сборки
-//      Редакция
+//      Номер редакции
 //
-[assembly: AssemblyVersion("0.4.2.0")]
-[assembly: AssemblyFileVersion("0.4.2.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

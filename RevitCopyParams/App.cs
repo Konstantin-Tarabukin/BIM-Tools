@@ -3,6 +3,7 @@ using Autodesk.Revit.UI;
 using RevitCopyParams.Models;
 using RevitCopyParams.Services;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -72,6 +73,9 @@ namespace RevitCopyParams
 
         public Result OnStartup(UIControlledApplication application)
         {
+
+            StartUpdaterTest();
+
             application.Idling += OnIdling;
 
             Task.Run(() => TestUpdateService());
@@ -223,7 +227,56 @@ namespace RevitCopyParams
             }
         }
 
+        private void StartUpdaterTest()
+        {
+            try
+            {
+                string assemblyPath =
+                    Assembly.GetExecutingAssembly().Location;
 
+                string assemblyFolder =
+                    Path.GetDirectoryName(assemblyPath);
+
+                string updaterPath =
+                    Path.Combine(
+                        assemblyFolder,
+                        "Updater",
+                        "BIMToolsUpdater.exe");
+
+                TaskDialog.Show(
+    "BIM Tools — путь Updater",
+    "Assembly:\n" + assemblyPath +
+    "\n\nUpdater:\n" + updaterPath);
+
+                if (!File.Exists(updaterPath))
+                {
+                    TaskDialog.Show(
+                        "BIM Tools",
+                        "Updater не найден:\n" + updaterPath);
+
+                    return;
+                }
+
+                int revitProcessId =
+                    System.Diagnostics.Process.GetCurrentProcess().Id;
+
+                string updatePath =
+                    @"C:\Temp\BIMToolsUpdate.zip";
+
+                string arguments =
+                    $"{revitProcessId} \"{updatePath}\"";
+
+                System.Diagnostics.Process.Start(
+                    updaterPath,
+                    arguments);
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show(
+                    "BIM Tools — ошибка Updater",
+                    ex.ToString());
+            }
+        }
     }
 
 }

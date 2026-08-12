@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="BIMToolsUpdater/BIMToolsUpdater.csproj" Id="3af262e1-4add-491d-9f3a-5134f0ddfb0b" />
   <Project Path="RevitCopyParams/RevitCopyParams.csproj" Id="391dce30-1b0c-440c-a8d1-5ace533deee2" />
 </Solution>
