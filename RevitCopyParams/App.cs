@@ -1,56 +1,30 @@
-﻿using Autodesk.Revit.DB.Events;// используем для сокращения имени класса "Autodesk.Revit.DB.Events.DocumentOpenedEventArgs"
+﻿using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
-using RevitCopyParams.Models;
 using RevitCopyParams.Services;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Interop;
 using System.Windows.Media.Imaging;
-
 
 namespace RevitCopyParams
 {
     public class App : IExternalApplication
     {
-        private void OnIdling(object sender, Autodesk.Revit.UI.Events.IdlingEventArgs e)
-        {
-            if (pendingUpdateInfo == null)
-                return;
-
-            UpdateInfo updateInfo = pendingUpdateInfo;
-            pendingUpdateInfo = null;
-
-            TaskDialog.Show(
-                "BIM Tools",
-                $"CurrentVersion: {updateInfo.CurrentVersion}\n" +
-                $"LatestVersion: {updateInfo.LatestVersion}\n" +
-                $"UpdateAvailable: {updateInfo.UpdateAvailable}");
-        }
-
-
-
         private NotificationService notificationService =
-    new NotificationService();
-        private UpdateInfo pendingUpdateInfo;
-
-
+            new NotificationService();
 
         private void OnDocumentOpened(
-    object sender,
-    Autodesk.Revit.DB.Events.DocumentOpenedEventArgs e)
+            object sender,
+            Autodesk.Revit.DB.Events.DocumentOpenedEventArgs e)
         {
-
             try
             {
-
-                notificationService.CheckNotifications(e.Document, "Открытие файла");
+                notificationService.CheckNotifications(
+                    e.Document,
+                    "Открытие файла");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-
             }
         }
 
@@ -58,32 +32,26 @@ namespace RevitCopyParams
             object sender,
             Autodesk.Revit.DB.Events.DocumentSynchronizedWithCentralEventArgs e)
         {
-            notificationService.CheckNotifications(e.Document, "Синхронизация");
+            notificationService.CheckNotifications(
+                e.Document,
+                "Синхронизация");
         }
 
         private void OnReloadLatest(
             object sender,
             Autodesk.Revit.DB.Events.DocumentReloadedLatestEventArgs e)
         {
-            notificationService.CheckNotifications(e.Document,  "Обновить до последней версии");
+            notificationService.CheckNotifications(
+                e.Document,
+                "Обновить до последней версии");
         }
 
-
-
-
-        public Result OnStartup(UIControlledApplication application)
+        public Result OnStartup(
+            UIControlledApplication application)
         {
-
-            StartUpdaterTest();
-
-            application.Idling += OnIdling;
-
-            Task.Run(() => TestUpdateService());
+            UpdateStartupService.Start();
 
             string tabName = "BIM Tools";
-
-
-
 
             try
             {
@@ -94,16 +62,28 @@ namespace RevitCopyParams
                 // Вкладка уже существует
             }
 
-            RibbonPanel panel = application.CreateRibbonPanel(tabName, "Параметры");
+            RibbonPanel panel =
+                application.CreateRibbonPanel(
+                    tabName,
+                    "Параметры");
+
             // Подписываемся на события Revit
-            application.ControlledApplication.DocumentOpened += OnDocumentOpened;
-            application.ControlledApplication.DocumentSynchronizedWithCentral += OnDocumentSynchronized;
-            application.ControlledApplication.DocumentReloadedLatest += OnReloadLatest;
+            application.ControlledApplication.DocumentOpened +=
+                OnDocumentOpened;
 
+            application.ControlledApplication.DocumentSynchronizedWithCentral +=
+                OnDocumentSynchronized;
 
-            string assemblyPath = Assembly.GetExecutingAssembly().Location;
-            string assemblyFolder = Path.GetDirectoryName(assemblyPath);
-            //Кнопка1
+            application.ControlledApplication.DocumentReloadedLatest +=
+                OnReloadLatest;
+
+            string assemblyPath =
+                Assembly.GetExecutingAssembly().Location;
+
+            string assemblyFolder =
+                Path.GetDirectoryName(assemblyPath);
+
+            // Кнопка 1
             CreateButton(
                 panel,
                 assemblyPath,
@@ -113,7 +93,8 @@ namespace RevitCopyParams
                 "RevitCopyParams.CopyParamsToInsulation",
                 "Копирует параметры ADSK с воздуховодов/труб на изоляцию",
                 "CopyParams");
-            //Кнопка 2
+
+            // Кнопка 2
             CreateButton(
                 panel,
                 assemblyPath,
@@ -133,7 +114,7 @@ namespace RevitCopyParams
                 "Журнал",
                 "RevitCopyParams.ChangeJournalCommand",
                 "Создание записи об изменениях",
-               "Journal");
+                "Journal");
 
             // Кнопка 4
             CreateButton(
@@ -144,13 +125,11 @@ namespace RevitCopyParams
                 "Нумератор\nлистов",
                 "RevitCopyParams.SheetNumberCommand",
                 "Перенумерация листов в проекте",
-               "SheetNumber");
-
+                "SheetNumber");
 
             return Result.Succeeded;
-
         }
-        //метод вызова кнопок
+
         private void CreateButton(
             RibbonPanel panel,
             string assemblyPath,
@@ -161,122 +140,78 @@ namespace RevitCopyParams
             string toolTip,
             string iconName)
         {
-            PushButtonData buttonData = new PushButtonData(
-                internalName,
-                buttonText,
-                assemblyPath,
-                commandClass);
+            PushButtonData buttonData =
+                new PushButtonData(
+                    internalName,
+                    buttonText,
+                    assemblyPath,
+                    commandClass);
 
-            PushButton button = panel.AddItem(buttonData) as PushButton;
+            PushButton button =
+                panel.AddItem(buttonData) as PushButton;
 
             if (button == null)
                 return;
 
             button.ToolTip = toolTip;
 
-            string resourcesFolder = Path.Combine(
-    assemblyFolder,
-    "Resources");
+            string resourcesFolder =
+                Path.Combine(
+                    assemblyFolder,
+                    "Resources");
 
-            string icon32 = Path.Combine(
-                resourcesFolder,
-                iconName + "32.png");
+            string icon32 =
+                Path.Combine(
+                    resourcesFolder,
+                    iconName + "32.png");
 
-            string icon16 = Path.Combine(
-                resourcesFolder,
-                iconName + "16.png");
+            string icon16 =
+                Path.Combine(
+                    resourcesFolder,
+                    iconName + "16.png");
 
-            SetButtonIcons(button, icon16, icon32);
+            SetButtonIcons(
+                button,
+                icon16,
+                icon32);
         }
-        //метод иконок кнопок
-        private void SetButtonIcons(PushButton button, string smallIcon, string largeIcon)
+
+        private void SetButtonIcons(
+            PushButton button,
+            string smallIcon,
+            string largeIcon)
         {
             if (button == null)
                 return;
 
             if (File.Exists(largeIcon))
-                button.LargeImage = new BitmapImage(new Uri(largeIcon));
+            {
+                button.LargeImage =
+                    new BitmapImage(
+                        new Uri(largeIcon));
+            }
 
             if (File.Exists(smallIcon))
-                button.Image = new BitmapImage(new Uri(smallIcon));
+            {
+                button.Image =
+                    new BitmapImage(
+                        new Uri(smallIcon));
+            }
         }
 
-        public Result OnShutdown(UIControlledApplication application)
+        public Result OnShutdown(
+            UIControlledApplication application)
         {
-            application.Idling -= OnIdling;
-            application.ControlledApplication.DocumentOpened -= OnDocumentOpened;
-            application.ControlledApplication.DocumentSynchronizedWithCentral -= OnDocumentSynchronized;
-            application.ControlledApplication.DocumentReloadedLatest -= OnReloadLatest;
+            application.ControlledApplication.DocumentOpened -=
+                OnDocumentOpened;
+
+            application.ControlledApplication.DocumentSynchronizedWithCentral -=
+                OnDocumentSynchronized;
+
+            application.ControlledApplication.DocumentReloadedLatest -=
+                OnReloadLatest;
 
             return Result.Succeeded;
         }
-
-        private async System.Threading.Tasks.Task TestUpdateService()
-        {
-            try
-            {
-                var updateInfo = await UpdateService.GetLatestRelease();
-
-                pendingUpdateInfo = updateInfo;
-            }
-            catch (Exception ex)
-            {
-                System.IO.File.WriteAllText(
-                    @"C:\Temp\BIMToolsUpdateError.txt",
-                    ex.ToString());
-            }
-        }
-
-        private void StartUpdaterTest()
-        {
-            try
-            {
-                string assemblyPath =
-                    Assembly.GetExecutingAssembly().Location;
-
-                string assemblyFolder =
-                    Path.GetDirectoryName(assemblyPath);
-
-                string updaterPath =
-                    Path.Combine(
-                        assemblyFolder,
-                        "Updater",
-                        "BIMToolsUpdater.exe");
-
-                TaskDialog.Show(
-    "BIM Tools — путь Updater",
-    "Assembly:\n" + assemblyPath +
-    "\n\nUpdater:\n" + updaterPath);
-
-                if (!File.Exists(updaterPath))
-                {
-                    TaskDialog.Show(
-                        "BIM Tools",
-                        "Updater не найден:\n" + updaterPath);
-
-                    return;
-                }
-
-                int revitProcessId =
-                    System.Diagnostics.Process.GetCurrentProcess().Id;
-
-                string updatePath =
-                    @"C:\Temp\BIMToolsUpdate.zip";
-
-                string arguments =
-                    $"{revitProcessId} \"{updatePath}\"";
-
-                System.Diagnostics.Process.Start(
-                    updaterPath,
-                    arguments);
-            }
-            catch (Exception ex)
-            {
-                TaskDialog.Show(
-                    "BIM Tools — ошибка Updater",
-                    ex.ToString());
-            }
-        }
     }
-
 }

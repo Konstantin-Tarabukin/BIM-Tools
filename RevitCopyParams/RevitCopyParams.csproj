@@ -84,6 +84,7 @@
     <Compile Include="Services\RevitLinkService.cs" />
     <Compile Include="Services\SheetNumberService.cs" />
     <Compile Include="Services\UpdateService.cs" />
+    <Compile Include="Services\UpdateStartupService.cs" />
     <Compile Include="UI\ChangeDetailsWindow.xaml.cs">
       <DependentUpon>ChangeDetailsWindow.xaml</DependentUpon>
     </Compile>
@@ -174,6 +175,7 @@ copy "$(TargetPath)" "%25PluginDir%25\" /Y
 
 xcopy "$(ProjectDir)Resources\*.*" "%25PluginDir%25\Resources\" /Y /E
 
+
 (
 echo ^&lt;?xml version="1.0" encoding="utf-8" standalone="no"?^&gt;
 echo ^&lt;RevitAddIns^&gt;
@@ -195,8 +197,61 @@ echo.
 echo ^&lt;/RevitAddIns^&gt;
 ) &gt; "%25RevitAddins%25\RevitCopyParams.addin"
 
+
 if not exist "%25PluginDir%25\Updater" mkdir "%25PluginDir%25\Updater"
 
-copy "$(SolutionDir)BIMToolsUpdater\bin\Release\BIMToolsUpdater.exe" "%25PluginDir%25\Updater\" /Y</PostBuildEvent>
+copy "$(SolutionDir)BIMToolsUpdater\bin\Release\BIMToolsUpdater.exe" "%25PluginDir%25\Updater\" /Y
+
+
+rem ==========================================
+rem BIM Tools - создание Update Package
+rem ==========================================
+
+set "UpdatePackageDir=$(TargetDir)UpdatePackage"
+
+if exist "%25UpdatePackageDir%25" rmdir /S /Q "%25UpdatePackageDir%25"
+
+mkdir "%25UpdatePackageDir%25"
+
+rem Получаем актуальную версию из собранной DLL
+for /f "tokens=*" %25%25V in ('powershell -NoProfile -Command "$a=[System.Reflection.AssemblyName]::GetAssemblyName('$(TargetPath)'); $a.Version.ToString(3)"') do set "AssemblyVersion=%25%25V"
+
+echo AssemblyVersion: %25AssemblyVersion%25
+
+rem Копируем основную DLL
+copy "$(TargetPath)" "%25UpdatePackageDir%25\" /Y
+
+rem Копируем Newtonsoft.Json
+if exist "$(TargetDir)Newtonsoft.Json.dll" (
+    copy "$(TargetDir)Newtonsoft.Json.dll" "%25UpdatePackageDir%25\" /Y
+)
+
+rem Копируем Resources
+if exist "$(ProjectDir)Resources" (
+    xcopy "$(ProjectDir)Resources\*.*" "%25UpdatePackageDir%25\Resources\" /Y /E /I
+)
+
+rem Создаём UpdateInfo.json
+(
+echo {
+echo     "version": "%25AssemblyVersion%25"
+echo }
+) &gt; "%25UpdatePackageDir%25\UpdateInfo.json"
+
+rem Имя ZIP автоматически соответствует версии DLL
+set "UpdateZip=$(TargetDir)BIMToolsUpdate_%25AssemblyVersion%25.zip"
+
+if exist "%25UpdateZip%25" del /Q "%25UpdateZip%25"
+
+rem Создаём ZIP
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "Compress-Archive -Path '%25UpdatePackageDir%25\*' -DestinationPath '%25UpdateZip%25' -Force"
+
+echo.
+echo ==========================================
+echo BIM Tools Update Package created:
+echo %25UpdateZip%25
+echo Version: %25AssemblyVersion%25
+echo ==========================================</PostBuildEvent>
   </PropertyGroup>
 </Project>
