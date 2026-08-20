@@ -92,7 +92,32 @@ namespace RevitCopyParams.Services
 
                 File.AppendAllText(
                     logPath,
-                    "6. Запускаем Updater\n");
+                    "6. Проверяем UpdateInfo.json\n");
+
+                Version packageVersion =
+                    UpdateService.GetPackageVersion(
+                        downloadedFile);
+
+                File.AppendAllText(
+                    logPath,
+                    "PackageVersion: " +
+                    packageVersion +
+                    "\n" +
+                    "CurrentVersion: " +
+                    updateInfo.CurrentVersion +
+                    "\n");
+
+                UpdateService.ValidateUpdatePackage(
+                    downloadedFile,
+                    updateInfo.CurrentVersion);
+
+                File.AppendAllText(
+                    logPath,
+                    "PackageVersionValid: True\n");
+
+                File.AppendAllText(
+                    logPath,
+                    "7. Запускаем Updater\n");
 
                 bool updaterStarted =
                     StartUpdater(
@@ -103,13 +128,13 @@ namespace RevitCopyParams.Services
                 {
                     File.AppendAllText(
                         logPath,
-                        "7. Updater успешно запущен\n");
+                        "8. Updater успешно запущен\n");
                 }
                 else
                 {
                     File.AppendAllText(
                         logPath,
-                        "7. ОШИБКА: Updater не был запущен\n");
+                        "8. ОШИБКА: Updater не был запущен\n");
                 }
             }
             catch (Exception ex)

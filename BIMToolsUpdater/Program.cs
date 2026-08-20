@@ -12,6 +12,9 @@ namespace BIMToolsUpdater
 {
     internal class Program
     {
+        private static readonly string LogPath =
+            @"C:\Temp\BIMToolsUpdater.log";
+
         static void Main(string[] args)
         {
             bool createdNew;
@@ -27,10 +30,33 @@ namespace BIMToolsUpdater
                     Console.WriteLine(
                         "BIM Tools Updater уже запущен.");
 
+                    Log(
+                        "Updater уже запущен. Второй экземпляр завершён.");
+
                     return;
                 }
 
+                Log(
+                    "=== BIM TOOLS UPDATER START ===");
+
                 RunUpdater(args);
+            }
+        }
+
+        static void Log(string message)
+        {
+            try
+            {
+                File.AppendAllText(
+                    LogPath,
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") +
+                    " | " +
+                    message +
+                    Environment.NewLine);
+            }
+            catch
+            {
+                // Логирование не должно ломать работу Updater.
             }
         }
 
@@ -39,186 +65,305 @@ namespace BIMToolsUpdater
             Console.WriteLine(
                 "BIM Tools Updater запущен.");
 
+            Log(
+                "BIM Tools Updater запущен.");
+
+            if (args.Length == 0)
+            {
+                Console.WriteLine(
+                    "PID Revit не передан.");
+
+                Log(
+                    "ОШИБКА: PID Revit не передан.");
+
+                Thread.Sleep(2000);
+                return;
+            }
+
+            int revitProcessId;
+
+            if (!int.TryParse(
+                args[0],
+                out revitProcessId))
+            {
+                Console.WriteLine(
+                    "Некорректный PID Revit.");
+
+                Log(
+                    "ОШИБКА: некорректный PID Revit.");
+
+                Thread.Sleep(2000);
+                return;
+            }
+
+            string updatePath = null;
+
+            if (args.Length >= 2)
+            {
+                updatePath = args[1];
+
+                Console.WriteLine(
+                    $"Получен путь обновления: {updatePath}");
+
+                Log(
+                    $"Получен путь обновления: {updatePath}");
+            }
+            else
+            {
+                Console.WriteLine(
+                    "Путь обновления не передан.");
+
+                Log(
+                    "ОШИБКА: путь обновления не передан.");
+            }
+
+            Console.WriteLine(
+                $"Ожидание завершения Revit. PID: {revitProcessId}");
+
+            Log(
+                $"Ожидание завершения Revit. PID: {revitProcessId}");
+
+            try
+            {
+                Process revitProcess =
+                    Process.GetProcessById(
+                        revitProcessId);
+
+                revitProcess.WaitForExit();
+
+                Console.WriteLine(
+                    "Revit закрыт.");
+
+                Log(
+                    "Revit закрыт.");
+
+                if (!string.IsNullOrEmpty(updatePath))
+                {
+                    if (!File.Exists(updatePath))
+                    {
+                        Console.WriteLine(
+                            $"Файл обновления не найден: {updatePath}");
+
+                        Log(
+                            $"ОШИБКА: файл обновления не найден: {updatePath}");
+
+                        Thread.Sleep(2000);
+                        return;
+                    }
+
+                    Log(
+                        "ZIP-файл существует.");
+
+                    string testDirectory =
+                        @"C:\Temp\BIMToolsUpdate_Test";
+
+                    try
+                    {
+                        if (Directory.Exists(testDirectory))
+                        {
+                            Directory.Delete(
+                                testDirectory,
+                                true);
+
+                            Log(
+                                $"Удалена старая тестовая папка: {testDirectory}");
+                        }
+
+                        Directory.CreateDirectory(
+                            testDirectory);
+
+                        Log(
+                            $"Создана тестовая папка: {testDirectory}");
+
+                        ZipFile.ExtractToDirectory(
+                            updatePath,
+                            testDirectory);
+
+                        Console.WriteLine(
+                            $"Обновление распаковано в: {testDirectory}");
+
+                        Log(
+                            $"ZIP распакован в: {testDirectory}");
+
+                        int extractedFileCount =
+                            Directory.GetFiles(
+                                testDirectory,
+                                "*",
+                                SearchOption.AllDirectories).Length;
+
+                        Console.WriteLine(
+                            "Файлов в распакованной папке: " +
+                            extractedFileCount);
+
+                        Log(
+                            $"Файлов в распакованном пакете: {extractedFileCount}");
+
+                        string targetDirectory =
+                            Path.Combine(
+                                Environment.GetFolderPath(
+                                    Environment.SpecialFolder.ApplicationData),
+                                "Autodesk",
+                                "Revit",
+                                "Addins",
+                                "2023",
+                                "RevitCopyParams");
+
+                        Log(
+                            $"Целевая папка: {targetDirectory}");
+
+                        List<string> backupFiles =
+                            new List<string>();
+
+                        List<string> newFiles =
+                            new List<string>();
+
+                        try
+                        {
+
+                            foreach (string sourceFile in
+                                Directory.GetFiles(
+                                    testDirectory,
+                                    "*",
+                                    SearchOption.AllDirectories))
+                            {
+                                string relativePath =
+                                    sourceFile.Substring(
+                                        testDirectory.Length)
+                                    .TrimStart('\\');
+
+                                string targetFile =
+                                    Path.Combine(
+                                        targetDirectory,
+                                        relativePath);
+
+                                string targetFolder =
+                                    Path.GetDirectoryName(
+                                        targetFile);
+
+                                if (!Directory.Exists(
+                                    targetFolder))
+                                {
+                                    Directory.CreateDirectory(
+                                        targetFolder);
+
+                                    Log(
+                                        $"Создана папка: {targetFolder}");
+                                }
+
+                                string backupFile =
+                                    targetFile + ".backup";
+
+                                if (File.Exists(
+                                    targetFile))
+                                {
+                                    Console.WriteLine(
+                                        $"Создание backup: {backupFile}");
+
+                                    Log(
+                                        $"Создание backup: {backupFile}");
+
+                                    File.Copy(
+                                        targetFile,
+                                        backupFile,
+                                        true);
+
+                                    backupFiles.Add(
+                                        backupFile);
+
+                                    Log(
+                                        $"Backup добавлен в список: {backupFile}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine(
+                                        $"Новый файл: {targetFile}");
+
+                                    Log(
+                                        $"Новый файл: {targetFile}");
+
+                                    newFiles.Add(
+                                        targetFile);
+                                }
+
+                                Console.WriteLine(
+                                    $"Замена файла: {targetFile}");
+
+                                Log(
+                                    $"Замена файла: {targetFile}");
+
+                                File.Copy(
+                                    sourceFile,
+                                    targetFile,
+                                    true);
+
+                                Console.WriteLine(
+                                    $"Файл обновлён: {targetFile}");
+
+                                Log(
+                                    $"Файл успешно заменён: {targetFile}");
 
 
-     if (args.Length == 0)
-     {
-         Console.WriteLine("PID Revit не передан.");
-         Console.ReadKey();
-         return;
-     }
+                                }
 
-     int revitProcessId;
+                            
 
-     if (!int.TryParse(args[0], out revitProcessId))
-     {
-         Console.WriteLine("Некорректный PID Revit.");
-         Console.ReadKey();
-         return;
-     }
+                            Console.WriteLine(
+                                "Все файлы успешно обновлены.");
 
-     string updatePath = null;
+                            Log(
+                                "Все файлы успешно обновлены.");
 
-     if (args.Length >= 2)
-     {
-         updatePath = args[1];
+                            foreach (string backupFile in backupFiles)
+                            {
+                                if (File.Exists(
+                                    backupFile))
+                                {
+                                    File.Delete(
+                                        backupFile);
 
-         Console.WriteLine(
-             $"Получен путь обновления: {updatePath}");
-     }
-     else
-     {
-         Console.WriteLine(
-             "Путь обновления не передан.");
-     }
+                                    Log(
+                                        $"Backup удалён: {backupFile}");
+                                }
+                            }
 
-     Console.WriteLine(
-         $"Ожидание завершения Revit. PID: {revitProcessId}");
+                            try
+                            {
+                                if (File.Exists(
+                                    updatePath))
+                                {
+                                    File.Delete(
+                                        updatePath);
 
-     try
-     {
-         Process revitProcess =
-             Process.GetProcessById(revitProcessId);
+                                    Console.WriteLine(
+                                        $"Пакет обновления удалён: {updatePath}");
 
-         revitProcess.WaitForExit();
+                                    Log(
+                                        $"Пакет обновления удалён: {updatePath}");
+                                }
+                            }
+                            catch (Exception cleanupException)
+                            {
+                                Console.WriteLine(
+                                    "Не удалось удалить пакет обновления:");
 
-         Console.WriteLine("Revit закрыт.");
+                                Console.WriteLine(
+                                    cleanupException.ToString());
 
-         if (!string.IsNullOrEmpty(updatePath))
-         {
-             if (!File.Exists(updatePath))
-             {
-                 Console.WriteLine(
-                     $"Файл обновления не найден: {updatePath}");
-
-                 Console.ReadKey();
-                 return;
-             }
-
-             string testDirectory =
-                 @"C:\Temp\BIMToolsUpdate_Test";
-
-             try
-             {
-                 if (Directory.Exists(testDirectory))
-                 {
-                     Directory.Delete(testDirectory, true);
-                 }
-
-                 Directory.CreateDirectory(testDirectory);
-
-                 ZipFile.ExtractToDirectory(
-                     updatePath,
-                     testDirectory);
-
-                 Console.WriteLine(
-                     $"Обновление распаковано в: {testDirectory}");
-
-                 Console.WriteLine("=== НОВАЯ ВЕРСИЯ ТЕСТА ===");
-
-                 int extractedFileCount =
-                     Directory.GetFiles(
-                         testDirectory,
-                         "*",
-                         SearchOption.AllDirectories).Length;
-
-                 Console.WriteLine(
-                     "Файлов в распакованной папке: " +
-                     extractedFileCount);
-
-                 string targetDirectory =
-                     Path.Combine(
-                         Environment.GetFolderPath(
-                             Environment.SpecialFolder.ApplicationData),
-                         "Autodesk",
-                         "Revit",
-                         "Addins",
-                         "2023",
-                         "RevitCopyParams");
-
-                 List<string> backupFiles =
-                     new List<string>();
-
-                 List<string> newFiles =
-                     new List<string>();
-
-                 try
-                 {
-                     foreach (string sourceFile in Directory.GetFiles(
-                         testDirectory,
-                         "*",
-                         SearchOption.AllDirectories))
-                     {
-                         string relativePath =
-                             sourceFile.Substring(
-                                 testDirectory.Length)
-                             .TrimStart('\\');
-
-                         string targetFile =
-                             Path.Combine(
-                                 targetDirectory,
-                                 relativePath);
-
-                         string targetFolder =
-                             Path.GetDirectoryName(targetFile);
-
-                         if (!Directory.Exists(targetFolder))
-                         {
-                             Directory.CreateDirectory(targetFolder);
-                         }
-
-                         string backupFile =
-                             targetFile + ".backup";
-
-                         if (File.Exists(targetFile))
-                         {
-                             Console.WriteLine(
-                                 $"Создание backup: {backupFile}");
-
-                             File.Copy(
-                                 targetFile,
-                                 backupFile,
-                                 true);
-
-                             backupFiles.Add(backupFile);
-                         }
-                         else
-                         {
-                             Console.WriteLine(
-                                 $"Новый файл: {targetFile}");
-
-                             newFiles.Add(targetFile);
-                         }
-
-                         Console.WriteLine(
-                             $"Замена файла: {targetFile}");
-
-                         File.Copy(
-                             sourceFile,
-                             targetFile,
-                             true);
-
-                         Console.WriteLine(
-                             $"Файл обновлён: {targetFile}");
-
-
-                     }
-
-                     Console.WriteLine(
-                         "Все файлы успешно обновлены.");
-
-                     foreach (string backupFile in backupFiles)
-                     {
-                         if (File.Exists(backupFile))
-                         {
-                             File.Delete(backupFile);
-                         }
-                     }
+                                Log(
+                                    "ОШИБКА удаления пакета обновления: " +
+                                    cleanupException);
+                            }
 
                             Console.WriteLine(
                                 "Backup-файлы удалены.");
 
+                            Log(
+                                "Backup-файлы удалены.");
+
                             Console.WriteLine(
+                                "=== ОБНОВЛЕНИЕ УСПЕШНО ЗАВЕРШЕНО ===");
+
+                            Log(
                                 "=== ОБНОВЛЕНИЕ УСПЕШНО ЗАВЕРШЕНО ===");
 
                             ShowUpdateCompletedMessage();
@@ -231,132 +376,206 @@ namespace BIMToolsUpdater
                             Console.WriteLine(
                                 updateException.ToString());
 
+                            Log(
+                                "!!! ОШИБКА ОБНОВЛЕНИЯ !!!");
+
+                            Log(
+                                updateException.ToString());
+
                             Console.WriteLine(
                                 "Запускается восстановление предыдущей версии...");
 
-                            bool rollbackSuccess = true;
+                            Log(
+                                "Запускается восстановление предыдущей версии.");
 
-                     foreach (string backupFile in backupFiles)
-                     {
-                         try
-                         {
-                             if (!File.Exists(backupFile))
-                             {
-                                 Console.WriteLine(
-                                     $"Backup не найден: {backupFile}");
+                            bool rollbackSuccess =
+                                true;
 
-                                 rollbackSuccess = false;
-                                 continue;
-                             }
+                            Log(
+                                $"Backup-файлов для восстановления: {backupFiles.Count}");
 
-                             string originalFile =
-                                 backupFile.Substring(
-                                     0,
-                                     backupFile.Length -
-                                     ".backup".Length);
+                            Log(
+                                $"Новых файлов для удаления: {newFiles.Count}");
 
-                             File.Copy(
-                                 backupFile,
-                                 originalFile,
-                                 true);
+                            foreach (string backupFile in backupFiles)
+                            {
+                                try
+                                {
+                                    if (!File.Exists(
+                                        backupFile))
+                                    {
+                                        Console.WriteLine(
+                                            $"Backup не найден: {backupFile}");
 
-                             File.Delete(backupFile);
+                                        Log(
+                                            $"ОШИБКА: Backup не найден: {backupFile}");
 
-                             Console.WriteLine(
-                                 $"Восстановлен файл: {originalFile}");
-                         }
-                         catch (Exception rollbackException)
-                         {
-                             rollbackSuccess = false;
+                                        rollbackSuccess =
+                                            false;
 
-                             Console.WriteLine(
-                                 $"Ошибка восстановления {backupFile}:");
+                                        continue;
+                                    }
 
-                             Console.WriteLine(
-                                 rollbackException.ToString());
-                         }
-                     }
+                                    string originalFile =
+                                        backupFile.Substring(
+                                            0,
+                                            backupFile.Length -
+                                            ".backup".Length);
 
-                     foreach (string newFile in newFiles)
-                     {
-                         try
-                         {
-                             if (File.Exists(newFile))
-                             {
-                                 File.Delete(newFile);
+                                    Log(
+                                        $"Восстановление: {originalFile}");
 
-                                 Console.WriteLine(
-                                     $"Удалён новый файл: {newFile}");
-                             }
-                         }
-                         catch (Exception deleteException)
-                         {
-                             rollbackSuccess = false;
+                                    File.Copy(
+                                        backupFile,
+                                        originalFile,
+                                        true);
 
-                             Console.WriteLine(
-                                 $"Ошибка удаления нового файла {newFile}:");
+                                    File.Delete(
+                                        backupFile);
 
-                             Console.WriteLine(
-                                 deleteException.ToString());
-                         }
-                     }
+                                    Console.WriteLine(
+                                        $"Восстановлен файл: {originalFile}");
 
-                     if (rollbackSuccess)
-                     {
-                         Console.WriteLine(
-                             "=== ROLLBACK УСПЕШНО ЗАВЕРШЁН ===");
+                                    Log(
+                                        $"Файл восстановлен: {originalFile}");
 
-                         Console.WriteLine(
-                             "Предыдущая версия восстановлена.");
-                     }
-                     else
-                     {
-                         Console.WriteLine(
-                             "=== ROLLBACK ЗАВЕРШЁН С ОШИБКАМИ ===");
+                                    Log(
+                                        $"Backup удалён после восстановления: {backupFile}");
+                                }
+                                catch (Exception rollbackException)
+                                {
+                                    rollbackSuccess =
+                                        false;
 
-                         Console.WriteLine(
-                             "Необходимо проверить файлы плагина вручную.");
-                     }
+                                    Console.WriteLine(
+                                        $"Ошибка восстановления {backupFile}:");
 
-                     Console.ReadKey();
-                     return;
-                 }
-             }
-             catch (Exception ex)
-             {
-                 Console.WriteLine(
-                     "Ошибка подготовки обновления:");
+                                    Console.WriteLine(
+                                        rollbackException.ToString());
 
-                 Console.WriteLine(ex.ToString());
+                                    Log(
+                                        $"ОШИБКА восстановления {backupFile}: " +
+                                        rollbackException);
+                                }
+                            }
 
-                 Console.ReadKey();
-                 return;
-             }
-         }
+                            foreach (string newFile in newFiles)
+                            {
+                                try
+                                {
+                                    if (File.Exists(
+                                        newFile))
+                                    {
+                                        File.Delete(
+                                            newFile);
 
-         if (!string.IsNullOrEmpty(updatePath))
-         {
-             Console.WriteLine(
-                 $"Путь обновления после закрытия Revit: {updatePath}");
-         }
+                                        Console.WriteLine(
+                                            $"Удалён новый файл: {newFile}");
 
-         Console.WriteLine(
-             "Updater завершает работу.");
+                                        Log(
+                                            $"Новый файл удалён: {newFile}");
+                                    }
+                                }
+                                catch (Exception deleteException)
+                                {
+                                    rollbackSuccess =
+                                        false;
 
-         Thread.Sleep(2000);
-     }
-     catch (ArgumentException)
-     {
-         Console.WriteLine(
-             "Процесс Revit уже завершён.");
-     }
-     catch (Exception ex)
-     {
-         Console.WriteLine(ex.ToString());
-         Console.ReadKey();
-     }
- }
+                                    Console.WriteLine(
+                                        $"Ошибка удаления нового файла {newFile}:");
 
+                                    Console.WriteLine(
+                                        deleteException.ToString());
+
+                                    Log(
+                                        $"ОШИБКА удаления нового файла {newFile}: " +
+                                        deleteException);
+                                }
+                            }
+
+                            if (rollbackSuccess)
+                            {
+                                Console.WriteLine(
+                                    "=== ROLLBACK УСПЕШНО ЗАВЕРШЁН ===");
+
+                                Console.WriteLine(
+                                    "Предыдущая версия восстановлена.");
+
+                                Log(
+                                    "=== ROLLBACK УСПЕШНО ЗАВЕРШЁН ===");
+
+                                Log(
+                                    "Предыдущая версия восстановлена.");
+                            }
+                            else
+                            {
+                                Console.WriteLine(
+                                    "=== ROLLBACK ЗАВЕРШЁН С ОШИБКАМИ ===");
+
+                                Console.WriteLine(
+                                    "Необходимо проверить файлы плагина вручную.");
+
+                                Log(
+                                    "=== ROLLBACK ЗАВЕРШЁН С ОШИБКАМИ ===");
+
+                                Log(
+                                    "Необходимо проверить файлы плагина вручную.");
+                            }
+
+                            Log(
+                                "ZIP после ошибки обновления НЕ удаляется.");
+
+                            Thread.Sleep(2000);
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(
+                            "Ошибка подготовки обновления:");
+
+                        Console.WriteLine(
+                            ex.ToString());
+
+                        Log(
+                            "Ошибка подготовки обновления: " +
+                            ex);
+
+                        Thread.Sleep(2000);
+                        return;
+                    }
+                }
+
+
+
+                Console.WriteLine(
+                    "Updater завершает работу.");
+
+                Log(
+                    "Updater завершает работу.");
+
+                Thread.Sleep(2000);
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine(
+                    "Процесс Revit уже завершён.");
+
+                Log(
+                    "Процесс Revit уже завершён.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    ex.ToString());
+
+                Log(
+                    "Критическая ошибка Updater: " +
+                    ex);
+
+                Thread.Sleep(2000);
+            }
+        }
 
         static void ShowUpdateCompletedMessage()
         {
@@ -388,10 +607,14 @@ namespace BIMToolsUpdater
                         100;
 
                     window.Left =
-                        SystemParameters.WorkArea.Right - window.Width - 20;
+                        SystemParameters.WorkArea.Right -
+                        window.Width -
+                        20;
 
                     window.Top =
-                        SystemParameters.WorkArea.Bottom - window.Height - 20;
+                        SystemParameters.WorkArea.Bottom -
+                        window.Height -
+                        20;
 
                     window.AllowsTransparency =
                         true;
@@ -404,7 +627,10 @@ namespace BIMToolsUpdater
 
                     border.Background =
                         new SolidColorBrush(
-                            Color.FromRgb(45, 45, 48));
+                            Color.FromRgb(
+                                45,
+                                45,
+                                48));
 
                     border.CornerRadius =
                         new CornerRadius(8);
@@ -457,3 +683,4 @@ namespace BIMToolsUpdater
         }
     }
 }
+

@@ -3,6 +3,7 @@ using RevitCopyParams.Config;
 using RevitCopyParams.Models;
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -11,6 +12,88 @@ namespace RevitCopyParams.Services
 {
     public static class UpdateService
     {
+        public static Version GetPackageVersion(
+            string updatePath)
+        {
+            if (string.IsNullOrEmpty(updatePath))
+            {
+                throw new ArgumentException(
+                    "Путь к пакету обновления не указан.",
+                    nameof(updatePath));
+            }
+
+            if (!File.Exists(updatePath))
+            {
+                throw new FileNotFoundException(
+                    "Пакет обновления не найден.",
+                    updatePath);
+            }
+
+            using (ZipArchive archive =
+                ZipFile.OpenRead(updatePath))
+            {
+                ZipArchiveEntry infoEntry =
+                    archive.GetEntry("UpdateInfo.json");
+
+                if (infoEntry == null)
+                {
+                    throw new Exception(
+                        "В пакете обновления отсутствует UpdateInfo.json.");
+                }
+
+                using (StreamReader reader =
+                    new StreamReader(infoEntry.Open()))
+                {
+                    string json =
+                        reader.ReadToEnd();
+
+                    JObject updateInfo =
+                        JObject.Parse(json);
+
+                    string versionText =
+                        updateInfo["version"]?.ToString();
+
+                    if (string.IsNullOrWhiteSpace(versionText))
+                    {
+                        throw new Exception(
+                            "UpdateInfo.json не содержит версию пакета.");
+                    }
+
+                    Version packageVersion;
+
+                    if (!Version.TryParse(
+                        versionText,
+                        out packageVersion))
+                    {
+                        throw new Exception(
+                            "Некорректная версия в UpdateInfo.json: " +
+                            versionText);
+                    }
+
+                    return packageVersion;
+                }
+            }
+        }
+
+        public static void ValidateUpdatePackage(
+            string updatePath,
+            Version currentVersion)
+        {
+            Version packageVersion =
+                GetPackageVersion(updatePath);
+
+            if (packageVersion <= currentVersion)
+            {
+                throw new Exception(
+                    "Пакет обновления не является более новой версией. " +
+                    "Текущая версия: " +
+                    currentVersion +
+                    ", версия пакета: " +
+                    packageVersion +
+                    ".");
+            }
+        }
+
         public static Version GetCurrentVersion()
         {
             Assembly assembly =
@@ -39,8 +122,7 @@ namespace RevitCopyParams.Services
                     "BIM-Tools-Updater");
 
                 string url =
-                    UpdateSettings.ReleasesUrl +
-                    "/latest";
+                    UpdateSettings.ReleasesUrl;
 
                 HttpResponseMessage response =
                     await client.GetAsync(url);
@@ -50,39 +132,78 @@ namespace RevitCopyParams.Services
                 string json =
                     await response.Content.ReadAsStringAsync();
 
-                JObject release =
-                    JObject.Parse(json);
+                JArray releases =
+                    JArray.Parse(json);
 
-                string tagName =
-                    release["tag_name"]?.ToString();
+                JObject selectedRelease = null;
+                Version selectedVersion = null;
 
-                if (string.IsNullOrEmpty(tagName))
+                foreach (JObject release in releases)
+                {
+                    bool isDraft =
+                        release["draft"]?.ToObject<bool>() ?? false;
+
+                    bool isPrerelease =
+                        release["prerelease"]?.ToObject<bool>() ?? false;
+
+                    if (isDraft || isPrerelease)
+                    {
+                        continue;
+                    }
+
+                    string tagName =
+                        release["tag_name"]?.ToString();
+
+                    if (string.IsNullOrEmpty(tagName))
+                    {
+                        continue;
+                    }
+
+                    string versionText =
+                        tagName.TrimStart('v', 'V');
+
+                    int dashIndex =
+                        versionText.IndexOf('-');
+
+                    if (dashIndex >= 0)
+                    {
+                        versionText =
+                            versionText.Substring(
+                                0,
+                                dashIndex);
+                    }
+
+                    Version releaseVersion;
+
+                    if (!Version.TryParse(
+                        versionText,
+                        out releaseVersion))
+                    {
+                        continue;
+                    }
+
+                    if (selectedVersion == null ||
+                        releaseVersion > selectedVersion)
+                    {
+                        selectedVersion =
+                            releaseVersion;
+
+                        selectedRelease =
+                            release;
+                    }
+                }
+
+                if (selectedRelease == null ||
+                    selectedVersion == null)
                 {
                     throw new Exception(
-                        "GitHub Release не содержит tag_name.");
+                        "Не найден подходящий стабильный GitHub Release.");
                 }
-
-                string versionText =
-                    tagName.TrimStart('v');
-
-                int dashIndex =
-                    versionText.IndexOf('-');
-
-                if (dashIndex >= 0)
-                {
-                    versionText =
-                        versionText.Substring(
-                            0,
-                            dashIndex);
-                }
-
-                Version latestVersion =
-                    new Version(versionText);
 
                 string downloadUrl = null;
 
                 JArray assets =
-                    release["assets"] as JArray;
+                    selectedRelease["assets"] as JArray;
 
                 if (assets != null)
                 {
@@ -118,7 +239,7 @@ namespace RevitCopyParams.Services
                         GetCurrentVersion(),
 
                     LatestVersion =
-                        latestVersion,
+                        selectedVersion,
 
                     DownloadUrl =
                         downloadUrl
@@ -172,9 +293,76 @@ namespace RevitCopyParams.Services
                         tempDirectory,
                         fileName);
 
+                /*
+                 * Проверяем, существует ли уже пакет
+                 * требуемой версии.
+                 */
                 if (File.Exists(updatePath))
                 {
-                    File.Delete(updatePath);
+                    Console.WriteLine(
+                        "Пакет обновления уже существует:");
+
+                    Console.WriteLine(
+                        updatePath);
+
+                    try
+                    {
+                        Version existingPackageVersion =
+                            GetPackageVersion(updatePath);
+
+                        Console.WriteLine(
+                            "Версия существующего пакета: " +
+                            existingPackageVersion);
+
+                        Console.WriteLine(
+                            "Требуемая версия: " +
+                            updateInfo.LatestVersion);
+
+                        if (existingPackageVersion ==
+                            updateInfo.LatestVersion)
+                        {
+                            Console.WriteLine(
+                                "Существующий пакет соответствует требуемой версии.");
+
+                            Console.WriteLine(
+                                "Повторное скачивание не требуется.");
+
+                            return updatePath;
+                        }
+
+                        Console.WriteLine(
+                            "Существующий пакет имеет другую версию.");
+
+                        Console.WriteLine(
+                            "Пакет будет удалён и скачан заново.");
+
+                        File.Delete(
+                            updatePath);
+                    }
+                    catch (Exception packageException)
+                    {
+                        Console.WriteLine(
+                            "Не удалось проверить существующий пакет:");
+
+                        Console.WriteLine(
+                            packageException.ToString());
+
+                        Console.WriteLine(
+                            "Пакет будет удалён и скачан заново.");
+
+                        try
+                        {
+                            File.Delete(
+                                updatePath);
+                        }
+                        catch (Exception deleteException)
+                        {
+                            throw new Exception(
+                                "Не удалось удалить повреждённый " +
+                                "или некорректный пакет обновления.",
+                                deleteException);
+                        }
+                    }
                 }
 
                 Console.WriteLine(
@@ -197,8 +385,45 @@ namespace RevitCopyParams.Services
                         "Файл обновления не был создан.");
                 }
 
+                /*
+                 * После скачивания дополнительно проверяем,
+                 * что пакет действительно содержит ожидаемую версию.
+                 */
+                try
+                {
+                    Version downloadedPackageVersion =
+                        GetPackageVersion(updatePath);
+
+                    if (downloadedPackageVersion !=
+                        updateInfo.LatestVersion)
+                    {
+                        File.Delete(
+                            updatePath);
+
+                        throw new Exception(
+                            "Скачанный пакет имеет неправильную версию. " +
+                            "Ожидалась: " +
+                            updateInfo.LatestVersion +
+                            ", получена: " +
+                            downloadedPackageVersion +
+                            ".");
+                    }
+                }
+                catch
+                {
+                    if (File.Exists(updatePath))
+                    {
+                        File.Delete(
+                            updatePath);
+                    }
+
+                    throw;
+                }
+
                 return updatePath;
             }
         }
+
     }
 }
+

@@ -1,9 +1,11 @@
 ﻿using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
+using RevitCopyParams.Models;
 using RevitCopyParams.Services;
 using System;
 using System.IO;
 using System.Reflection;
+
 using System.Windows.Media.Imaging;
 
 namespace RevitCopyParams
@@ -46,10 +48,18 @@ namespace RevitCopyParams
                 "Обновить до последней версии");
         }
 
+
+
+
+
         public Result OnStartup(
             UIControlledApplication application)
         {
             UpdateStartupService.Start();
+
+
+
+
 
             string tabName = "BIM Tools";
 
