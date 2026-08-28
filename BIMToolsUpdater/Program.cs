@@ -1,10 +1,12 @@
-﻿using System;
+﻿
+using BIMToolsUpdater.Config;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Windows;
 using System.IO.Compression;
 using System.Threading;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -13,10 +15,12 @@ namespace BIMToolsUpdater
     internal class Program
     {
         private static readonly string LogPath =
-            @"C:\Temp\BIMToolsUpdater.log";
+            BIMToolsPaths.UpdaterLogPath;
 
         static void Main(string[] args)
         {
+            BIMToolsPaths.EnsureDirectories();
+
             bool createdNew;
 
             using (Mutex updaterMutex =

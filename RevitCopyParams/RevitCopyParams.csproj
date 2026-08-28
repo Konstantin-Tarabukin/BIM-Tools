@@ -70,6 +70,7 @@
     <Compile Include="Commands\CopyParamsToInsulation.cs" />
     <Compile Include="Commands\CreatePipesCommand.cs" />
     <Compile Include="Commands\SheetNumberCommand.cs" />
+    <Compile Include="Config\BIMToolsPaths.cs" />
     <Compile Include="Config\UpdateSettings.cs" />
     <Compile Include="Models\ChangeRecord.cs" />
     <Compile Include="Models\ChangeStatus.cs" />
@@ -166,17 +167,95 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>set "RevitAddins=%25AppData%25\Autodesk\Revit\Addins\2023"
+    <PostBuildEvent>rem ==========================================
+rem BIM Tools - настройки подписи
+rem ==========================================
+
+set "SignTool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.28000.0\x64\signtool.exe"
+set "CertificateThumbprint=2EDD86A85E525CE115896D4026DEDAC395E8766A"
+
+echo.
+echo ==========================================
+echo BIM Tools - Signing DLL
+echo ==========================================
+
+echo Target: "$(TargetPath)"
+
+rem ==========================================
+rem Подписываем DLL
+rem ==========================================
+
+"%25SignTool%25" sign ^
+    /sha1 %25CertificateThumbprint%25 ^
+    /fd SHA256 ^
+    /tr http://timestamp.digicert.com ^
+    /td SHA256 ^
+    "$(TargetPath)"
+
+if errorlevel 1 (
+    echo ERROR: DLL signing failed!
+    exit /b 1
+)
+
+rem ==========================================
+rem Проверяем подпись
+rem ==========================================
+
+echo.
+echo ==========================================
+echo BIM Tools - Verify Signature
+echo ==========================================
+
+"%25SignTool%25" verify /pa /v "$(TargetPath)"
+
+if errorlevel 1 (
+    echo ERROR: DLL signature verification failed!
+    exit /b 1
+)
+
+echo.
+echo DLL successfully signed and verified.
+
+
+rem ==========================================
+rem BIM Tools - установка в локальный Revit
+rem ==========================================
+
+set "RevitAddins=%25AppData%25\Autodesk\Revit\Addins\2023"
 set "PluginDir=%25RevitAddins%25\RevitCopyParams"
 
 if not exist "%25PluginDir%25" mkdir "%25PluginDir%25"
 
 if not exist "%25PluginDir%25\Resources" mkdir "%25PluginDir%25\Resources"
 
+echo.
+echo ==========================================
+echo Copying signed DLL to Revit
+echo ==========================================
+
 copy "$(TargetPath)" "%25PluginDir%25\" /Y
 
-xcopy "$(ProjectDir)Resources\*.*" "%25PluginDir%25\Resources\" /Y /E
+if errorlevel 1 (
+    echo ERROR: Failed to copy DLL to Revit folder!
+    echo Make sure Revit is completely closed.
+    exit /b 1
+)
 
+rem ==========================================
+rem Копируем Resources
+rem ==========================================
+
+xcopy "$(ProjectDir)Resources\*.*" "%25PluginDir%25\Resources\" /Y /E /I
+
+if errorlevel 1 (
+    echo ERROR: Failed to copy Resources!
+    exit /b 1
+)
+
+
+rem ==========================================
+rem Создание Revit .addin
+rem ==========================================
 
 (
 echo ^&lt;?xml version="1.0" encoding="utf-8" standalone="no"?^&gt;
@@ -200,9 +279,18 @@ echo ^&lt;/RevitAddIns^&gt;
 ) &gt; "%25RevitAddins%25\RevitCopyParams.addin"
 
 
+rem ==========================================
+rem BIM Tools Updater
+rem ==========================================
+
 if not exist "%25PluginDir%25\Updater" mkdir "%25PluginDir%25\Updater"
 
 copy "$(SolutionDir)BIMToolsUpdater\bin\Release\BIMToolsUpdater.exe" "%25PluginDir%25\Updater\" /Y
+
+if errorlevel 1 (
+    echo ERROR: Failed to copy BIMToolsUpdater.exe!
+    exit /b 1
+)
 
 
 rem ==========================================
@@ -215,39 +303,72 @@ if exist "%25UpdatePackageDir%25" rmdir /S /Q "%25UpdatePackageDir%25"
 
 mkdir "%25UpdatePackageDir%25"
 
-rem Получаем актуальную версию из собранной DLL
+rem ==========================================
+rem Получаем версию DLL
+rem ==========================================
+
 for /f "tokens=*" %25%25V in ('powershell -NoProfile -Command "$a=[System.Reflection.AssemblyName]::GetAssemblyName('$(TargetPath)'); $a.Version.ToString(3)"') do set "AssemblyVersion=%25%25V"
 
+echo.
 echo AssemblyVersion: %25AssemblyVersion%25
 
-rem Копируем основную DLL
+
+rem ==========================================
+rem Копируем подписанную DLL
+rem ==========================================
+
 copy "$(TargetPath)" "%25UpdatePackageDir%25\" /Y
 
+if errorlevel 1 (
+    echo ERROR: Failed to copy signed DLL to UpdatePackage!
+    exit /b 1
+)
+
+
+rem ==========================================
 rem Копируем Newtonsoft.Json
+rem ==========================================
+
 if exist "$(TargetDir)Newtonsoft.Json.dll" (
     copy "$(TargetDir)Newtonsoft.Json.dll" "%25UpdatePackageDir%25\" /Y
 )
 
+
+rem ==========================================
 rem Копируем Resources
+rem ==========================================
+
 if exist "$(ProjectDir)Resources" (
     xcopy "$(ProjectDir)Resources\*.*" "%25UpdatePackageDir%25\Resources\" /Y /E /I
 )
 
+
+rem ==========================================
 rem Создаём UpdateInfo.json
+rem ==========================================
+
 (
 echo {
 echo     "version": "%25AssemblyVersion%25"
 echo }
 ) &gt; "%25UpdatePackageDir%25\UpdateInfo.json"
 
-rem Имя ZIP автоматически соответствует версии DLL
+
+rem ==========================================
+rem Создание ZIP
+rem ==========================================
+
 set "UpdateZip=$(TargetDir)BIMToolsUpdate_%25AssemblyVersion%25.zip"
 
 if exist "%25UpdateZip%25" del /Q "%25UpdateZip%25"
 
-rem Создаём ZIP
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "Compress-Archive -Path '%25UpdatePackageDir%25\*' -DestinationPath '%25UpdateZip%25' -Force"
+
+if errorlevel 1 (
+    echo ERROR: Failed to create ZIP!
+    exit /b 1
+)
 
 echo.
 echo ==========================================

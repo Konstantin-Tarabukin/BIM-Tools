@@ -273,9 +273,7 @@ namespace RevitCopyParams.Services
                     "BIM-Tools-Updater");
 
                 string tempDirectory =
-                    Path.Combine(
-                        Path.GetTempPath(),
-                        "BIMToolsUpdate");
+                    BIMToolsPaths.UpdatesDirectory;
 
                 if (!Directory.Exists(tempDirectory))
                 {

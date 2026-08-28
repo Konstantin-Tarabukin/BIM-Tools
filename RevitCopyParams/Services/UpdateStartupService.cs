@@ -1,4 +1,5 @@
-﻿using RevitCopyParams.Models;
+﻿using RevitCopyParams.Config;
+using RevitCopyParams.Models;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -24,8 +25,10 @@ namespace RevitCopyParams.Services
 
         private static async Task CheckForUpdates()
         {
+
             string logPath =
-                @"C:\Temp\BIMToolsUpdateTest.log";
+
+            BIMToolsPaths.UpdateStartupLogPath;
 
             try
             {
