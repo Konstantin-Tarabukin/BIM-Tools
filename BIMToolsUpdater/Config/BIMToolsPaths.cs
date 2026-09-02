@@ -45,6 +45,30 @@ namespace BIMToolsUpdater.Config
             }
         }
 
+        public static string TempDirectory
+        {
+            get
+            {
+                return Path.Combine(
+                    BIMToolsDirectory,
+                    "Temp");
+            }
+        }
+
+        public static string PluginDirectory
+        {
+            get
+            {
+                return Path.Combine(
+                    AppDataDirectory,
+                    "Autodesk",
+                    "Revit",
+                    "Addins",
+                    "2023",
+                    "RevitCopyParams");
+            }
+        }
+
         public static void EnsureDirectories()
         {
             Directory.CreateDirectory(
@@ -52,6 +76,9 @@ namespace BIMToolsUpdater.Config
 
             Directory.CreateDirectory(
                 LogsDirectory);
+
+            Directory.CreateDirectory(
+                TempDirectory);
         }
     }
 }

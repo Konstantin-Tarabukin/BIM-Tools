@@ -159,7 +159,7 @@ namespace BIMToolsUpdater
                         "ZIP-файл существует.");
 
                     string testDirectory =
-                        @"C:\Temp\BIMToolsUpdate_Test";
+                        BIMToolsPaths.TempDirectory;
 
                     try
                     {
@@ -203,14 +203,7 @@ namespace BIMToolsUpdater
                             $"Файлов в распакованном пакете: {extractedFileCount}");
 
                         string targetDirectory =
-                            Path.Combine(
-                                Environment.GetFolderPath(
-                                    Environment.SpecialFolder.ApplicationData),
-                                "Autodesk",
-                                "Revit",
-                                "Addins",
-                                "2023",
-                                "RevitCopyParams");
+                            BIMToolsPaths.PluginDirectory;
 
                         Log(
                             $"Целевая папка: {targetDirectory}");

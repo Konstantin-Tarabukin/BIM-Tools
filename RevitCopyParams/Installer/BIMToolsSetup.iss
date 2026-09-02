@@ -1,5 +1,4 @@
 #define MyAppName "BIM Tools"
-#define MyAppVersion "0.4.1"
 #define MyAppPublisher "TarabukinConst"
 
 #define ProjectDir ".."
@@ -18,10 +17,16 @@
 #error "BIMToolsUpdater.exe not found in BIMToolsUpdater\bin\Release. Сначала соберите Solution в Release."
 #endif
 
-
 #if !DirExists(ProjectDir + "\Resources")
 #error "Resources folder not found."
 #endif
+
+
+; ============================================================
+; Версия автоматически берётся из RevitCopyParams.dll
+; ============================================================
+
+#define MyAppVersion GetVersionNumbersString(BuildDir + "\RevitCopyParams.dll")
 
 
 [Setup]
@@ -32,8 +37,8 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 
-VersionInfoVersion={#MyAppVersion}.0
-VersionInfoProductVersion={#MyAppVersion}.0
+VersionInfoVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersion}
 
 DefaultDirName={autopf}\BIM Tools
 DefaultGroupName={#MyAppName}
@@ -90,8 +95,8 @@ Source: "{#ProjectDir}\Resources\*"; \
 ; ============================================================
 
 Source: "{#UpdaterBuildDir}\BIMToolsUpdater.exe"; \
-DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams\Updater"; \
-Flags: ignoreversion overwritereadonly restartreplace uninsrestartdelete
+    DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\RevitCopyParams\Updater"; \
+    Flags: ignoreversion overwritereadonly restartreplace uninsrestartdelete
 
 
 [UninstallDelete]

@@ -55,6 +55,7 @@ namespace RevitCopyParams.Config
             }
         }
 
+
         public static string PluginDirectory
         {
             get
@@ -113,6 +114,8 @@ namespace RevitCopyParams.Config
 
             Directory.CreateDirectory(
                 TempDirectory);
+
+
         }
     }
 }

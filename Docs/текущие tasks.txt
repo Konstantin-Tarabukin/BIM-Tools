@@ -1,0 +1,20 @@
+task
+| Часть                                  | Состояние        |
+| -------------------------------------- | ---------------- |
+| GitHub `UpdateSettings`                | ✅                |
+| Stable Release filtering               | ✅                |
+| Проверка `UpdateInfo.json`             | ✅                |
+| Скачивание ZIP                         | ✅                |
+| Updater                                | ✅                |
+| Backup                                 | ✅                |
+| Rollback                               | ✅                |
+| Установка в AppData                    | ✅                |
+| Подпись DLL                            | ✅                |
+| Post-Build / ZIP                       | ✅                |
+| `BIMToolsPaths`                        | ✅ создан         |
+| Подключение `BIMToolsPaths`            |  |
+| ZIP → `%AppData%\BIMTools\...\Updates` | ❌                |
+| `UpdateStartup.log`                    | ❌                |
+| `Updater.log`                          | ❌                |
+| `C:\Temp` в production-коде            | 🔶 in progress     |// перенос логирования в AppData
+| Production logging                     | ❌                |
