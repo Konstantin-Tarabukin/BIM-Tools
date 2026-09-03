@@ -158,40 +158,40 @@ namespace BIMToolsUpdater
                     Log(
                         "ZIP-файл существует.");
 
-                    string testDirectory =
+                    string tempDirectory =
                         BIMToolsPaths.TempDirectory;
 
                     try
                     {
-                        if (Directory.Exists(testDirectory))
+                        if (Directory.Exists(tempDirectory))
                         {
                             Directory.Delete(
-                                testDirectory,
+                                tempDirectory,
                                 true);
 
                             Log(
-                                $"Удалена старая тестовая папка: {testDirectory}");
+                                $"Удалена старая временная папка: {tempDirectory}");
                         }
 
                         Directory.CreateDirectory(
-                            testDirectory);
+                            tempDirectory);
 
                         Log(
-                            $"Создана тестовая папка: {testDirectory}");
+                            $"Создана временная папка: {tempDirectory}");
 
                         ZipFile.ExtractToDirectory(
                             updatePath,
-                            testDirectory);
+                            tempDirectory);
 
                         Console.WriteLine(
-                            $"Обновление распаковано в: {testDirectory}");
+                            $"Обновление распаковано в: {tempDirectory}");
 
                         Log(
-                            $"ZIP распакован в: {testDirectory}");
+                            $"ZIP распакован в: {tempDirectory}");
 
                         int extractedFileCount =
                             Directory.GetFiles(
-                                testDirectory,
+                                tempDirectory,
                                 "*",
                                 SearchOption.AllDirectories).Length;
 
@@ -219,13 +219,13 @@ namespace BIMToolsUpdater
 
                             foreach (string sourceFile in
                                 Directory.GetFiles(
-                                    testDirectory,
+                                    tempDirectory,
                                     "*",
                                     SearchOption.AllDirectories))
                             {
                                 string relativePath =
                                     sourceFile.Substring(
-                                        testDirectory.Length)
+                                        tempDirectory.Length)
                                     .TrimStart('\\');
 
                                 string targetFile =
