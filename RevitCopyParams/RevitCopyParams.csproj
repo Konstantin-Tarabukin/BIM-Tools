@@ -216,6 +216,55 @@ if errorlevel 1 (
 echo.
 echo DLL successfully signed and verified.
 
+rem ==========================================
+rem BIM Tools - Signing Updater
+rem ==========================================
+
+set "UpdaterPath=$(SolutionDir)BIMToolsUpdater\bin\Release\BIMToolsUpdater.exe"
+
+echo.
+echo ==========================================
+echo BIM Tools - Signing Updater
+echo ==========================================
+
+echo Target: "%25UpdaterPath%25"
+
+if not exist "%25UpdaterPath%25" (
+    echo ERROR: BIMToolsUpdater.exe not found!
+    echo Build BIMToolsUpdater before RevitCopyParams.
+    exit /b 1
+)
+
+"%25SignTool%25" sign ^
+    /sha1 %25CertificateThumbprint%25 ^
+    /fd SHA256 ^
+    /tr http://timestamp.digicert.com ^
+    /td SHA256 ^
+    "%25UpdaterPath%25"
+
+if errorlevel 1 (
+    echo ERROR: Updater signing failed!
+    exit /b 1
+)
+
+rem ==========================================
+rem Проверяем подпись Updater
+rem ==========================================
+
+echo.
+echo ==========================================
+echo BIM Tools - Verify Updater Signature
+echo ==========================================
+
+"%25SignTool%25" verify /pa /v "%25UpdaterPath%25"
+
+if errorlevel 1 (
+    echo ERROR: Updater signature verification failed!
+    exit /b 1
+)
+
+echo.
+echo Updater successfully signed and verified.
 
 rem ==========================================
 rem BIM Tools - установка в локальный Revit
@@ -271,7 +320,7 @@ echo     ^&lt;AddInId^&gt;7AC1B09C-4C4D-4DA6-869F-4CE027F1A8B2^&lt;/AddInId^&gt;
 echo.
 echo     ^&lt;FullClassName^&gt;RevitCopyParams.App^&lt;/FullClassName^&gt;
 echo.
-echo     ^&lt;VendorId^&gt;ADSK^&lt;/VendorId^&gt;
+echo     ^&lt;VendorId^&gt;BIMT^&lt;/VendorId^&gt;
 echo.
 echo   ^&lt;/AddIn^&gt;
 echo.

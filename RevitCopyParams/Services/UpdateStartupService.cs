@@ -26,6 +26,8 @@ namespace RevitCopyParams.Services
         private static async Task CheckForUpdates()
         {
 
+            BIMToolsPaths.EnsureDirectories();
+
             string logPath =
 
             BIMToolsPaths.UpdateStartupLogPath;

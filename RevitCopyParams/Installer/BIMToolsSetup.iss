@@ -47,7 +47,7 @@ DefaultGroupName={#MyAppName}
 ; версии из ProgramData.
 PrivilegesRequired=admin
 
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesInstallIn64BitMode=x64compatible
 
 Compression=lzma2
 SolidCompression=yes
@@ -59,9 +59,19 @@ DisableDirPage=yes
 DisableProgramGroupPage=yes
 
 Uninstallable=yes
+SignedUninstaller=yes
+SignTool=BIMToolsSign
+
 
 
 [Files]
+; ============================================================
+; СЕРТИФИКАТ .CER
+; ============================================================
+
+Source: "{#ProjectDir}\Installer\Certificate\BIMToolsDevelopment.cer"; \
+    DestDir: "{tmp}"; \
+    Flags: dontcopy
 
 ; ============================================================
 ; ОСНОВНАЯ DLL
@@ -113,6 +123,109 @@ Type: files; \
 
 
 [Code]
+
+function InstallBIMToolsCertificate(): Boolean;
+var
+  CertFile: String;
+  ResultCode: Integer;
+begin
+
+  Result := False;
+
+  { Извлекаем сертификат из установщика во временную папку }
+
+  ExtractTemporaryFile('BIMToolsDevelopment.cer');
+
+  CertFile :=
+    ExpandConstant(
+      '{tmp}\BIMToolsDevelopment.cer'
+    );
+
+
+  { ==========================================================
+    Добавляем сертификат в Trusted Root Certification Authorities
+    ========================================================== }
+
+  if not Exec(
+    ExpandConstant('{sys}\certutil.exe'),
+    '-addstore -f Root "' + CertFile + '"',
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ResultCode
+  ) then
+  begin
+
+    MsgBox(
+      'Не удалось запустить certutil.exe для установки сертификата BIM Tools.',
+      mbError,
+      MB_OK
+    );
+
+    Exit;
+
+  end;
+
+
+  if ResultCode <> 0 then
+  begin
+
+    MsgBox(
+      'Не удалось добавить сертификат BIM Tools в доверенные корневые сертификаты.' + #13#10 +
+      'Код ошибки: ' + IntToStr(ResultCode),
+      mbError,
+      MB_OK
+    );
+
+    Exit;
+
+  end;
+
+
+  { ==========================================================
+    Добавляем сертификат в Trusted Publishers
+    ========================================================== }
+
+  if not Exec(
+    ExpandConstant('{sys}\certutil.exe'),
+    '-addstore -f TrustedPublisher "' + CertFile + '"',
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ResultCode
+  ) then
+  begin
+
+    MsgBox(
+      'Не удалось запустить certutil.exe для установки доверенного издателя BIM Tools.',
+      mbError,
+      MB_OK
+    );
+
+    Exit;
+
+  end;
+
+
+  if ResultCode <> 0 then
+  begin
+
+    MsgBox(
+      'Не удалось добавить сертификат BIM Tools в доверенные издатели.' + #13#10 +
+      'Код ошибки: ' + IntToStr(ResultCode),
+      mbError,
+      MB_OK
+    );
+
+    Exit;
+
+  end;
+
+
+  Result := True;
+
+end;
+
 
 
 function IsRevitRunning(): Boolean;
@@ -336,6 +449,8 @@ begin
 
   if CurStep = ssPostInstall then
   begin
+
+    InstallBIMToolsCertificate();
 
     CreateAddinFile();
 
