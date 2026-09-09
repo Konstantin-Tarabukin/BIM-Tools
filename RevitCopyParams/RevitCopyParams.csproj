@@ -84,6 +84,7 @@
     <Compile Include="Services\ChangeJournalService.cs" />
     <Compile Include="Services\NotificationService.cs" />
     <Compile Include="Services\NotificationStateService.cs" />
+    <Compile Include="Services\RevitLinkReloadService.cs" />
     <Compile Include="Services\RevitLinkService.cs" />
     <Compile Include="Services\SheetNumberService.cs" />
     <Compile Include="Services\UpdateService.cs" />

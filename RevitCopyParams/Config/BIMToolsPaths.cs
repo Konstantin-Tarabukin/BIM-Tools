@@ -91,6 +91,16 @@ namespace RevitCopyParams.Config
             }
         }
 
+        public static string RevitLinkReloadLogPath
+        {
+            get
+            {
+                return Path.Combine(
+                    LogsDirectory,
+                    "RevitLinkReload.log");
+            }
+        }
+
         public static string UpdaterLogPath
         {
             get
@@ -101,6 +111,15 @@ namespace RevitCopyParams.Config
             }
         }
 
+        public static string JournalDiagnosticsLogPath
+        {
+            get
+            {
+                return Path.Combine(
+                    LogsDirectory,
+                    "JournalDiagnostics.log");
+            }
+        }
         public static void EnsureDirectories()
         {
             Directory.CreateDirectory(

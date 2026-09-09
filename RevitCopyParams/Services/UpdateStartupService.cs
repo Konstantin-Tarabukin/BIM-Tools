@@ -10,6 +10,24 @@ namespace RevitCopyParams.Services
     {
         private static bool updateStarted;
 
+        public static void LogDiagnostic(string message)
+        {
+            try
+            {
+                BIMToolsPaths.EnsureDirectories();
+
+                File.AppendAllText(
+                    BIMToolsPaths.JournalDiagnosticsLogPath,
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") +
+                    " | " +
+                    message +
+                    Environment.NewLine);
+            }
+            catch
+            {
+            }
+        }
+
         public static void Start()
         {
             if (updateStarted)
@@ -25,12 +43,10 @@ namespace RevitCopyParams.Services
 
         private static async Task CheckForUpdates()
         {
-
             BIMToolsPaths.EnsureDirectories();
 
             string logPath =
-
-            BIMToolsPaths.UpdateStartupLogPath;
+                BIMToolsPaths.UpdateStartupLogPath;
 
             try
             {

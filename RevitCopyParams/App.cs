@@ -5,7 +5,6 @@ using RevitCopyParams.Services;
 using System;
 using System.IO;
 using System.Reflection;
-
 using System.Windows.Media.Imaging;
 
 namespace RevitCopyParams
@@ -21,12 +20,30 @@ namespace RevitCopyParams
         {
             try
             {
+                string modelName =
+                    RevitLinkService.GetModelName(e.Document);
+
+                UpdateStartupService.LogDiagnostic(
+                    "DOCUMENT OPENED START | Model=" +
+                    modelName);
+
                 notificationService.CheckNotifications(
                     e.Document,
                     "Открытие файла");
+
+                UpdateStartupService.LogDiagnostic(
+                    "DOCUMENT OPENED END | Model=" +
+                    modelName);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                UpdateStartupService.LogDiagnostic(
+                    "DOCUMENT OPENED EXCEPTION | Type=" +
+                    ex.GetType().FullName +
+                    " | Message=" +
+                    ex.Message +
+                    " | StackTrace=" +
+                    ex.StackTrace);
             }
         }
 
@@ -34,32 +51,107 @@ namespace RevitCopyParams
             object sender,
             Autodesk.Revit.DB.Events.DocumentSynchronizedWithCentralEventArgs e)
         {
-            notificationService.CheckNotifications(
-                e.Document,
-                "Синхронизация");
+            string modelName = "UNKNOWN";
+
+            try
+            {
+                modelName =
+                    RevitLinkService.GetModelName(
+                        e.Document);
+
+                UpdateStartupService.LogDiagnostic(
+                    "SYNC START | Model=" +
+                    modelName +
+                    " | Status=" +
+                    e.Status);
+
+                if (e.Status ==
+                    Autodesk.Revit.DB.Events.RevitAPIEventStatus.Succeeded)
+                {
+                    UpdateStartupService.LogDiagnostic(
+                        "LINK RELOAD START | Model=" +
+                        modelName);
+
+                    RevitLinkReloadService
+                        .ReloadLoadedTopLevelLinks(
+                            e.Document);
+
+                    UpdateStartupService.LogDiagnostic(
+                        "LINK RELOAD END | Model=" +
+                        modelName);
+                }
+                else
+                {
+                    UpdateStartupService.LogDiagnostic(
+                        "LINK RELOAD SKIPPED | Model=" +
+                        modelName +
+                        " | Reason=SyncStatusNotSucceeded");
+                }
+
+                notificationService.CheckNotifications(
+                    e.Document,
+                    "Синхронизация");
+
+                UpdateStartupService.LogDiagnostic(
+                    "SYNC END | Model=" +
+                    modelName);
+            }
+            catch (Exception ex)
+            {
+                UpdateStartupService.LogDiagnostic(
+                    "SYNC EXCEPTION | Model=" +
+                    modelName +
+                    " | Type=" +
+                    ex.GetType().FullName +
+                    " | Message=" +
+                    ex.Message +
+                    " | StackTrace=" +
+                    ex.StackTrace);
+            }
         }
 
         private void OnReloadLatest(
             object sender,
             Autodesk.Revit.DB.Events.DocumentReloadedLatestEventArgs e)
         {
-            notificationService.CheckNotifications(
-                e.Document,
-                "Обновить до последней версии");
+            string modelName = "UNKNOWN";
+
+            try
+            {
+                modelName =
+                    RevitLinkService.GetModelName(
+                        e.Document);
+
+                UpdateStartupService.LogDiagnostic(
+                    "RELOAD LATEST START | Model=" +
+                    modelName);
+
+                notificationService.CheckNotifications(
+                    e.Document,
+                    "Обновить до последней версии");
+
+                UpdateStartupService.LogDiagnostic(
+                    "RELOAD LATEST END | Model=" +
+                    modelName);
+            }
+            catch (Exception ex)
+            {
+                UpdateStartupService.LogDiagnostic(
+                    "RELOAD LATEST EXCEPTION | Model=" +
+                    modelName +
+                    " | Type=" +
+                    ex.GetType().FullName +
+                    " | Message=" +
+                    ex.Message +
+                    " | StackTrace=" +
+                    ex.StackTrace);
+            }
         }
-
-
-
-
 
         public Result OnStartup(
             UIControlledApplication application)
         {
             UpdateStartupService.Start();
-
-
-
-
 
             string tabName = "BIM Tools";
 
@@ -77,7 +169,6 @@ namespace RevitCopyParams
                     tabName,
                     "Параметры");
 
-            // Подписываемся на события Revit
             application.ControlledApplication.DocumentOpened +=
                 OnDocumentOpened;
 
@@ -93,7 +184,6 @@ namespace RevitCopyParams
             string assemblyFolder =
                 Path.GetDirectoryName(assemblyPath);
 
-            // Кнопка 1
             CreateButton(
                 panel,
                 assemblyPath,
@@ -104,7 +194,6 @@ namespace RevitCopyParams
                 "Копирует параметры ADSK с воздуховодов/труб на изоляцию",
                 "CopyParams");
 
-            // Кнопка 2
             CreateButton(
                 panel,
                 assemblyPath,
@@ -115,7 +204,6 @@ namespace RevitCopyParams
                 "Создание теплого пола по заданной области",
                 "CreatePipes");
 
-            // Кнопка 3
             CreateButton(
                 panel,
                 assemblyPath,
@@ -126,7 +214,6 @@ namespace RevitCopyParams
                 "Создание записи об изменениях",
                 "Journal");
 
-            // Кнопка 4
             CreateButton(
                 panel,
                 assemblyPath,
