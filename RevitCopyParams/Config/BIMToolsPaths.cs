@@ -120,6 +120,30 @@ namespace RevitCopyParams.Config
                     "JournalDiagnostics.log");
             }
         }
+
+        // Локальное состояние обработки внешних JSON-событий
+        // (ADR-014, этап A.11). Хранится только у пользователя.
+        public static string JournalStateJsonPath
+        {
+            get
+            {
+                return Path.Combine(
+                    BIMToolsDirectory,
+                    "JournalState.json");
+            }
+        }
+
+        // Файл настроек внешнего JSON-журнала.
+        public static string JournalSettingsJsonPath
+        {
+            get
+            {
+                return Path.Combine(
+                    BIMToolsDirectory,
+                    "JournalSettings.json");
+            }
+        }
+
         public static void EnsureDirectories()
         {
             Directory.CreateDirectory(

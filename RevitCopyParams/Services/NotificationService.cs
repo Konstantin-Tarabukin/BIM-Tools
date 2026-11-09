@@ -108,6 +108,18 @@ namespace RevitCopyParams
                                 continue;
                             }
 
+                            // Дедупликация между каналами (ADR-014):
+                            // запись уже показана через внешний JSON-журнал.
+                            if (JournalStateService.IsRecordProcessed(
+                                    record.Id))
+                            {
+                                UpdateStartupService.LogDiagnostic(
+                                    "RECORD SKIP | Reason=ProcessedViaJsonJournal | Id=" +
+                                    record.Id);
+
+                                continue;
+                            }
+
                             notifications.Add(record);
 
                             UpdateStartupService.LogDiagnostic(

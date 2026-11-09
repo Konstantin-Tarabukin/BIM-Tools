@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
+using RevitCopyParams.Config;
 using RevitCopyParams.Models;
 using RevitCopyParams.Services;
 using System;
@@ -26,6 +27,9 @@ namespace RevitCopyParams
                 UpdateStartupService.LogDiagnostic(
                     "DOCUMENT OPENED START | Model=" +
                     modelName);
+
+                JournalPollingService.UpdateContext(
+                    e.Document);
 
                 notificationService.CheckNotifications(
                     e.Document,
@@ -68,17 +72,31 @@ namespace RevitCopyParams
                 if (e.Status ==
                     Autodesk.Revit.DB.Events.RevitAPIEventStatus.Succeeded)
                 {
-                    UpdateStartupService.LogDiagnostic(
-                        "LINK RELOAD START | Model=" +
-                        modelName);
+                    // ADR-014 / A.19: уведомления доставляются внешним
+                    // JSON-журналом и не зависят от Reload связей.
+                    // RevitLinkReloadService сохранён как fallback-механизм
+                    // и включается настройкой reloadLinksAfterSync = true.
+                    if (JournalSettings.ReloadLinksAfterSync)
+                    {
+                        UpdateStartupService.LogDiagnostic(
+                            "LINK RELOAD START | Model=" +
+                            modelName);
 
-                    RevitLinkReloadService
-                        .ReloadLoadedTopLevelLinks(
-                            e.Document);
+                        RevitLinkReloadService
+                            .ReloadLoadedTopLevelLinks(
+                                e.Document);
 
-                    UpdateStartupService.LogDiagnostic(
-                        "LINK RELOAD END | Model=" +
-                        modelName);
+                        UpdateStartupService.LogDiagnostic(
+                            "LINK RELOAD END | Model=" +
+                            modelName);
+                    }
+                    else
+                    {
+                        UpdateStartupService.LogDiagnostic(
+                            "LINK RELOAD SKIPPED | Model=" +
+                            modelName +
+                            " | Reason=DisabledBySettings");
+                    }
                 }
                 else
                 {
@@ -87,6 +105,9 @@ namespace RevitCopyParams
                         modelName +
                         " | Reason=SyncStatusNotSucceeded");
                 }
+
+                JournalPollingService.UpdateContext(
+                    e.Document);
 
                 notificationService.CheckNotifications(
                     e.Document,
@@ -126,6 +147,9 @@ namespace RevitCopyParams
                     "RELOAD LATEST START | Model=" +
                     modelName);
 
+                JournalPollingService.UpdateContext(
+                    e.Document);
+
                 notificationService.CheckNotifications(
                     e.Document,
                     "Обновить до последней версии");
@@ -145,6 +169,27 @@ namespace RevitCopyParams
                     ex.Message +
                     " | StackTrace=" +
                     ex.StackTrace);
+            }
+        }
+
+        // Смена активного документа: polling должен читать журнал
+        // именно того проекта, в котором пользователь работает.
+        private void OnDocumentActivated(
+            object sender,
+            Autodesk.Revit.DB.Events.DocumentActivatedEventArgs e)
+        {
+            try
+            {
+                JournalPollingService.UpdateContext(
+                    e.Document);
+            }
+            catch (Exception ex)
+            {
+                UpdateStartupService.LogDiagnostic(
+                    "DOCUMENT ACTIVATED EXCEPTION | Type=" +
+                    ex.GetType().FullName +
+                    " | Message=" +
+                    ex.Message);
             }
         }
 
@@ -177,6 +222,12 @@ namespace RevitCopyParams
 
             application.ControlledApplication.DocumentReloadedLatest +=
                 OnReloadLatest;
+
+            application.ControlledApplication.DocumentActivated +=
+                OnDocumentActivated;
+
+            // Внешний JSON-журнал (ADR-014): фоновый опрос новых событий.
+            JournalPollingService.Start();
 
             string assemblyPath =
                 Assembly.GetExecutingAssembly().Location;
@@ -299,6 +350,8 @@ namespace RevitCopyParams
         public Result OnShutdown(
             UIControlledApplication application)
         {
+            JournalPollingService.Stop();
+
             application.ControlledApplication.DocumentOpened -=
                 OnDocumentOpened;
 
@@ -307,6 +360,9 @@ namespace RevitCopyParams
 
             application.ControlledApplication.DocumentReloadedLatest -=
                 OnReloadLatest;
+
+            application.ControlledApplication.DocumentActivated -=
+                OnDocumentActivated;
 
             return Result.Succeeded;
         }

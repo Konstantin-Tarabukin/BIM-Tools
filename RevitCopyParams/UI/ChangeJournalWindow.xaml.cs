@@ -1,4 +1,6 @@
 ﻿using Autodesk.Revit.UI;
+using RevitCopyParams.Models;
+using RevitCopyParams.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -96,6 +98,14 @@ namespace RevitCopyParams
                 _uiApp.ActiveUIDocument.Document,
                 record);
 
+            // Dual Write (ADR-014, этап A.8): та же запись уходит
+            // во внешний JSON-журнал. Канал best-effort: ошибки
+            // пишутся в лог и не влияют на пользователя.
+            JournalPublishService.PublishRecord(
+                _uiApp.ActiveUIDocument.Document,
+                record,
+                JournalEventTypes.RecordCreated);
+
             RefreshJournal();
         }
 
@@ -155,6 +165,14 @@ namespace RevitCopyParams
             ChangeExtensibleStorageService.UpdateRecord(
                 _uiApp.ActiveUIDocument.Document,
                 updatedRecord);
+
+            // Dual Write (ADR-014, этап A.8): редактирование тоже
+            // уходит во внешний JSON-журнал — получатели видят,
+            // что запись изменена (IsEdited = true).
+            JournalPublishService.PublishRecord(
+                _uiApp.ActiveUIDocument.Document,
+                updatedRecord,
+                JournalEventTypes.RecordEdited);
 
             RefreshJournal();
         }

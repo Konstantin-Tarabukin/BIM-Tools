@@ -1157,6 +1157,20 @@ ES
 
 🟡 Принято к реализации.
 
+Код POC реализован (ветка feature/json-journal):
+
+```text
+JournalEvent, IJournalWriter, IJournalReader,
+JsonJournalWriter, JsonJournalReader,
+JournalPathResolver, JournalStateService,
+JournalEventMapper, JournalPublishService,
+JournalPollingService
+```
+
+Детали реализации, правила дедупликации и чек-лист
+натурных испытаний — в документе
+«JSON Journal POC — реализация.md».
+
 Первый этап:
 
 ```text
