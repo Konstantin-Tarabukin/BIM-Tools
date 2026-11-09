@@ -73,6 +73,9 @@
     <Compile Include="Config\BIMToolsPaths.cs" />
     <Compile Include="Config\UpdateSettings.cs" />
     <Compile Include="Models\ChangeRecord.cs" />
+	<Compile Include="Models\ChangeElementReference.cs" />
+	<Compile Include="Models\JournalClientState.cs" />
+	<Compile Include="Models\JournalEvent.cs" />
     <Compile Include="Models\ChangeStatus.cs" />
     <Compile Include="Models\ChangeStatusToBrushConverter.cs" />
     <Compile Include="Models\ChangeStatusToTextConverter.cs" />
@@ -82,6 +85,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ChangeExtensibleStorageService.cs" />
     <Compile Include="Services\ChangeJournalService.cs" />
+	<Compile Include="Services\IJournalReader.cs" />
+	<Compile Include="Services\IJournalWriter.cs" />
+	<Compile Include="Services\JournalEventFactory.cs" />
+	<Compile Include="Services\JsonJournalNotificationService.cs" />
+	<Compile Include="Services\JsonJournalPathService.cs" />
+	<Compile Include="Services\JsonJournalPublisher.cs" />
+	<Compile Include="Services\JsonJournalReader.cs" />
+	<Compile Include="Services\JsonJournalRuntime.cs" />
+	<Compile Include="Services\JsonJournalStateService.cs" />
+	<Compile Include="Services\JsonJournalWriter.cs" />
     <Compile Include="Services\NotificationService.cs" />
     <Compile Include="Services\NotificationStateService.cs" />
     <Compile Include="Services\RevitLinkReloadService.cs" />

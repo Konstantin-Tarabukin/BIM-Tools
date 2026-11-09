@@ -120,6 +120,25 @@ namespace RevitCopyParams.Config
                     "JournalDiagnostics.log");
             }
         }
+        public static string JournalLogPath
+        {
+            get
+            {
+                return Path.Combine(
+                    LogsDirectory,
+                    "JournalDiagnostics.log");
+            }
+        }
+
+        public static string JournalStatePath
+        {
+            get
+            {
+                return Path.Combine(
+                    BIMToolsDirectory,
+                    "JournalState.json");
+            }
+        }
         public static void EnsureDirectories()
         {
             Directory.CreateDirectory(

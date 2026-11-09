@@ -20,6 +20,18 @@ namespace RevitCopyParams
         {
             try
             {
+
+                // лог диагностики
+                UpdateStartupService.LogDiagnostic(
+                 "DEBUG DOCUMENT PATH | PathName=" +
+                    e.Document.PathName +
+                    " | IsWorkshared=" +
+                    e.Document.IsWorkshared);
+                //лог диагностики
+
+                if (JsonJournalRuntime.HandleDocumentOpened(e.Document))
+                    return;
+
                 string modelName =
                     RevitLinkService.GetModelName(e.Document);
 
@@ -55,6 +67,11 @@ namespace RevitCopyParams
 
             try
             {
+                if (JsonJournalRuntime.HandleDocumentSynchronized(
+                        e.Document,
+                        e.Status == Autodesk.Revit.DB.Events.RevitAPIEventStatus.Succeeded))
+                    return;
+
                 modelName =
                     RevitLinkService.GetModelName(
                         e.Document);
@@ -118,6 +135,10 @@ namespace RevitCopyParams
 
             try
             {
+                if (JsonJournalRuntime.HandleDocumentReloadedLatest(
+                        e.Document))
+                    return;
+
                 modelName =
                     RevitLinkService.GetModelName(
                         e.Document);
@@ -152,6 +173,8 @@ namespace RevitCopyParams
             UIControlledApplication application)
         {
             UpdateStartupService.Start();
+
+            JsonJournalRuntime.Start(application);
 
             string tabName = "BIM Tools";
 
@@ -299,6 +322,8 @@ namespace RevitCopyParams
         public Result OnShutdown(
             UIControlledApplication application)
         {
+            JsonJournalRuntime.Stop(application);
+
             application.ControlledApplication.DocumentOpened -=
                 OnDocumentOpened;
 
